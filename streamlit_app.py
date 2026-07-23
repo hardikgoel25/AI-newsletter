@@ -3,6 +3,7 @@ import os
 import webbrowser
 
 import streamlit as st
+import streamlit.components.v1 as components
 
 from src.llm import LLMClient
 from src.prompts import NEWSLETTER_JSON_PROMPT
@@ -174,7 +175,7 @@ if st.button("🚀 Generate Newsletter", use_container_width=True):
             state="complete"
         )
 
-        # ---------------- Open Browser ----------------
+        # ---------------- Preview / Open ----------------
 
         html_content = output_file.read_text(
             encoding="utf-8"
@@ -182,14 +183,41 @@ if st.button("🚀 Generate Newsletter", use_container_width=True):
 
         st.success("🎉 Newsletter generated successfully!")
 
-        try:
-            # Windows
-            os.startfile(output_file)
-        except AttributeError:
-            # Linux / macOS
-            webbrowser.open(output_file.resolve().as_uri())
+        # Detect Streamlit Cloud
+        is_cloud = os.getenv("STREAMLIT_SERVER_HEADLESS") == "true"
 
-        st.info("The newsletter has been opened in your default browser.")
+        if is_cloud:
+
+            st.subheader("📄 Newsletter Preview")
+
+            components.html(
+                html_content,
+                height=900,
+                scrolling=True,
+            )
+
+            st.info(
+                "Preview shown above. You can also download the HTML below."
+            )
+
+        else:
+
+            try:
+                os.startfile(output_file)
+            except (AttributeError, OSError):
+                webbrowser.open(output_file.resolve().as_uri())
+
+            st.info(
+                "The newsletter has been opened in your default browser."
+            )
+
+            with st.expander("📄 Preview inside Streamlit"):
+
+                components.html(
+                    html_content,
+                    height=900,
+                    scrolling=True,
+                )
 
         # ---------------- Download ----------------
 

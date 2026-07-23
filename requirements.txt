@@ -1,0 +1,81 @@
+# ============================
+# Core
+# ============================
+python-dotenv
+requests
+httpx
+pydantic
+tqdm
+
+# ============================
+# Jupyter
+# ============================
+ipykernel
+jupyter
+notebook
+
+# ============================
+# Data Handling
+# ============================
+pandas
+numpy
+
+# ============================
+# Document Parsing
+# ============================
+pdfplumber
+python-docx
+pypdf
+beautifulsoup4
+lxml
+markdown
+
+# ============================
+# HTML Templates
+# ============================
+jinja2
+
+# ============================
+# Image Handling
+# ============================
+Pillow
+
+# ============================
+# RSS & Web
+# ============================
+feedparser
+
+# ============================
+# Streamlit (later)
+# ============================
+streamlit
+
+# ============================
+# LLM Providers
+# ============================
+groq
+openai
+google-genai
+huggingface_hub
+ollama
+
+# ============================
+# LangChain (optional)
+# ============================
+langchain
+langchain-community
+langchain-core
+langchain-text-splitters
+
+# ============================
+# Embeddings / RAG (future)
+# ============================
+sentence-transformers
+faiss-cpu
+
+# ============================
+# Utilities
+# ============================
+rich
+streamlit
+weasyprint

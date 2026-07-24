@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>{{ company_name }} — {{ newsletter_type }}</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:wght@500;600;700&display=swap" rel="stylesheet">
+
+<style>
+:root{
+--bg:#0b0b0c;
+--surface:#141414;
+--surface2:#1a1a1a;
+--border:#2b2b2b;
+--text:#fafafa;
+--muted:#a8a8a8;
+--accent:#ffffff;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+font-family:Inter,sans-serif;
+background:var(--bg);
+color:var(--text);
+padding:50px 20px;
+line-height:1.7;
+}
+.wrapper{
+max-width:860px;
+margin:auto;
+background:var(--surface);
+border:1px solid var(--border);
+border-radius:24px;
+overflow:hidden;
+box-shadow:0 30px 80px rgba(0,0,0,.45);
+}
+header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:32px 42px;
+border-bottom:1px solid var(--border);
+}
+.brand{display:flex;align-items:center;gap:14px}
+.logo{width:48px;height:48px;object-fit:contain}
+.company,h1,.section h2{font-family:Fraunces,serif}
+.company{font-size:1.4rem}
+.type{
+font-size:.75rem;
+letter-spacing:.22em;
+text-transform:uppercase;
+color:var(--muted);
+}
+.hero{padding:50px 42px}
+.meta{
+display:flex;
+gap:12px;
+align-items:center;
+font-size:.8rem;
+letter-spacing:.16em;
+text-transform:uppercase;
+color:var(--muted);
+}
+.divider{width:30px;height:1px;background:var(--border)}
+h1{
+font-size:3.2rem;
+line-height:1.1;
+margin:22px 0 16px;
+}
+.subtitle{
+font-size:1.15rem;
+color:var(--muted);
+max-width:90%;
+}
+.hero img{
+margin-top:34px;
+width:100%;
+aspect-ratio:16/9;
+object-fit:cover;
+border-radius:22px;
+border:1px solid var(--border);
+}
+.highlights{
+display:grid;
+grid-template-columns:repeat(2,1fr);
+gap:20px;
+padding:0 42px 42px;
+}
+.highlight{
+background:var(--surface2);
+border:1px solid var(--border);
+border-radius:18px;
+padding:24px;
+transition:.25s;
+}
+.highlight:hover{
+transform:translateY(-4px);
+box-shadow:0 18px 40px rgba(0,0,0,.35);
+}
+.icon{font-size:1.8rem}
+.highlight h3{margin:12px 0}
+.highlight p{color:var(--muted)}
+.summary{
+margin:0 42px 42px;
+padding:34px;
+background:var(--surface2);
+border:1px solid var(--border);
+border-radius:18px;
+}
+.label{
+font-size:.75rem;
+letter-spacing:.2em;
+text-transform:uppercase;
+color:var(--muted);
+margin-bottom:12px;
+}
+.sections{padding:0 42px 42px}
+.section{
+padding:34px 0;
+border-top:1px solid var(--border);
+}
+.section:first-child{border-top:none}
+.section h2{
+display:flex;
+gap:12px;
+align-items:center;
+font-size:1.9rem;
+margin-bottom:14px;
+}
+.section p{color:#d0d0d0}
+footer{
+padding:34px 42px;
+border-top:1px solid var(--border);
+}
+.footer-top{
+display:flex;
+justify-content:space-between;
+flex-wrap:wrap;
+gap:16px;
+}
+.links{display:flex;gap:20px;flex-wrap:wrap}
+.links a{color:var(--muted);text-decoration:none}
+.links a:hover{color:#fff}
+.copy{
+margin-top:16px;
+color:#777;
+font-size:.9rem;
+}
+@media(max-width:720px){
+body{padding:0}
+.wrapper{border-radius:0}
+header,.hero,.sections,footer{padding-left:22px;padding-right:22px}
+.highlights{grid-template-columns:1fr;padding:0 22px 28px}
+.summary{margin:0 22px 28px}
+header{flex-direction:column;align-items:flex-start;gap:12px}
+h1{font-size:2.3rem}
+.subtitle{max-width:100%}
+}
+</style>
+</head>
+<body>
+<div class="wrapper">
+<header>
+<div class="brand">
+<img class="logo" src="{{ logo }}" alt="{{ company_name }}">
+<div class="company">{{ company_name }}</div>
+</div>
+<div class="type">{{ newsletter_type }}</div>
+</header>
+
+<section class="hero">
+<div class="meta">
+<span>{{ date }}</span>
+<div class="divider"></div>
+<span>{{ estimated_read_time }}</span>
+</div>
+
+<h1>{{ hero_title }}</h1>
+<p class="subtitle">{{ subtitle }}</p>
+
+<img src="{{ hero_placeholder }}" alt="">
+</section>
+
+<section class="highlights">
+{% for highlight in highlights %}
+<div class="highlight">
+<div class="icon">{{ highlight.icon }}</div>
+<h3>{{ highlight.title }}</h3>
+<p>{{ highlight.subtitle }}</p>
+</div>
+{% endfor %}
+</section>
+
+<section class="summary">
+<div class="label">Executive Summary</div>
+<p>{{ summary }}</p>
+</section>
+
+<section class="sections">
+{% for section in sections %}
+<div class="section">
+<h2><span>{{ section.icon }}</span>{{ section.title }}</h2>
+<p>{{ section.content }}</p>
+</div>
+{% endfor %}
+</section>
+
+<footer>
+<div class="footer-top">
+<div class="company">{{ company_name }}</div>
+<div class="links">
+{% if footer.website %}<a href="{{ footer.website }}">{{ footer.website }}</a>{% endif %}
+{% if footer.contact_email %}<a href="mailto:{{ footer.contact_email }}">{{ footer.contact_email }}</a>{% endif %}
+</div>
+</div>
+{% if footer.copyright %}
+<div class="copy">{{ footer.copyright }}</div>
+{% endif %}
+</footer>
+</div>
+</body>
+</html>

@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ company_name }} — {{ newsletter_type }}</title>
+<style>
+:root{
+--bg:#f5f5f5;
+--card:#fff;
+--text:#161616;
+--muted:#6b7280;
+--border:#e6e6e6;
+--accent:#111;
+--radius:18px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+font-family:Inter,Arial,sans-serif;
+background:var(--bg);
+color:var(--text);
+padding:48px 20px;
+line-height:1.7;
+}
+.wrapper{
+max-width:760px;
+margin:auto;
+background:var(--card);
+border:1px solid var(--border);
+border-radius:24px;
+overflow:hidden;
+box-shadow:0 10px 40px rgba(0,0,0,.06);
+}
+header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:28px 40px;
+border-bottom:1px solid var(--border);
+}
+.brand{display:flex;align-items:center;gap:14px}
+.logo{width:46px;height:46px;object-fit:contain}
+.company{
+font-family:Georgia,"Times New Roman",serif;
+font-size:1.3rem;
+font-weight:600;
+}
+.type{
+font-size:.75rem;
+letter-spacing:.25em;
+text-transform:uppercase;
+color:var(--muted);
+}
+.hero{padding:48px 40px}
+.meta{
+display:flex;
+align-items:center;
+gap:12px;
+font-size:.75rem;
+letter-spacing:.18em;
+text-transform:uppercase;
+color:var(--muted);
+}
+.divider{width:28px;height:1px;background:var(--border)}
+h1{
+font-family:Georgia,"Times New Roman",serif;
+font-size:3rem;
+font-weight:500;
+line-height:1.1;
+margin:24px 0 18px;
+}
+.subtitle{
+font-size:1.1rem;
+color:var(--muted);
+max-width:90%;
+}
+.hero img{
+margin-top:32px;
+width:100%;
+aspect-ratio:16/9;
+object-fit:cover;
+border-radius:18px;
+border:1px solid var(--border);
+}
+.highlights{
+display:grid;
+grid-template-columns:repeat(2,1fr);
+gap:18px;
+padding:0 40px 40px;
+}
+.highlight{
+padding:22px;
+border:1px solid var(--border);
+border-radius:16px;
+transition:.2s;
+}
+.highlight:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.05)}
+.icon{font-size:1.7rem}
+.highlight h3{margin:12px 0 6px;font-size:1rem}
+.highlight p{color:var(--muted);font-size:.95rem}
+.summary{
+margin:0 40px 40px;
+padding:32px;
+background:#f8f8f8;
+border-radius:18px;
+}
+.summary .label{
+font-size:.75rem;
+letter-spacing:.2em;
+text-transform:uppercase;
+color:var(--muted);
+margin-bottom:12px;
+}
+.sections{padding:0 40px 40px}
+.section{padding:34px 0}
+.section+.section{border-top:1px solid var(--border)}
+.section h2{
+display:flex;
+gap:12px;
+align-items:center;
+font-family:Georgia,"Times New Roman",serif;
+font-size:1.8rem;
+margin-bottom:14px;
+}
+.section p{color:#444}
+footer{
+border-top:1px solid var(--border);
+padding:36px 40px;
+}
+.footer-top{
+display:flex;
+justify-content:space-between;
+gap:20px;
+flex-wrap:wrap;
+}
+.links{display:flex;gap:20px;flex-wrap:wrap}
+.links a{text-decoration:none;color:var(--muted)}
+.links a:hover{color:var(--accent)}
+.copy{margin-top:18px;color:var(--muted);font-size:.85rem}
+@media(max-width:700px){
+body{padding:0}
+.wrapper{border-radius:0}
+header,.hero,.sections,footer{padding-left:22px;padding-right:22px}
+.summary{margin:0 22px 30px}
+.highlights{grid-template-columns:1fr;padding:0 22px 30px}
+header{flex-direction:column;align-items:flex-start;gap:10px}
+h1{font-size:2.2rem}
+.subtitle{max-width:100%}
+}
+
+.tagline{margin-top:6px;color:var(--muted);font-size:.95rem;}
+.footer-brand{display:flex;flex-direction:column;gap:6px;}
+.footer-contact{display:flex;flex-direction:column;gap:8px;}
+.footer-contact a{text-decoration:none;color:var(--muted);}
+.footer-contact a:hover{color:var(--accent);}
+.social-links{display:flex;gap:18px;margin-top:18px;}
+.social-links a{text-decoration:none;color:var(--muted);}
+.footer-divider{margin:28px 0;border:none;border-top:1px solid var(--border);}
+.subscription{margin-top:18px;color:var(--muted);font-size:.9rem;}
+.footer-bottom{margin-top:18px;display:flex;flex-wrap:wrap;gap:12px;color:var(--muted);font-size:.85rem;}
+
+</style>
+</head>
+<body>
+<div class="wrapper">
+<header>
+<div class="brand">
+<img class="logo" src="{{ logo }}" alt="{{ company_name }}">
+<div class="company">{{ company_name }}</div>
+</div>
+<div class="type">{{ newsletter_type }}</div>
+</header>
+
+<section class="hero">
+<div class="meta">
+<span>{{ date }}</span><div class="divider"></div><span>{{ estimated_read_time }}</span>
+</div>
+<h1>{{ hero_title }}</h1>
+<p class="subtitle">{{ subtitle }}</p>
+<img src="{{ hero_placeholder }}" alt="{{ hero_title }}">
+</section>
+
+<section class="highlights">
+{% for highlight in highlights %}
+<div class="highlight">
+<div class="icon">{{ highlight.icon }}</div>
+<h3>{{ highlight.title }}</h3>
+<p>{{ highlight.subtitle }}</p>
+</div>
+{% endfor %}
+</section>
+
+<section class="summary">
+<div class="label">Executive Summary</div>
+<p>{{ summary }}</p>
+</section>
+
+<section class="sections">
+{% for section in sections %}
+<article class="section">
+<h2><span>{{ section.icon }}</span>{{ section.title }}</h2>
+<p>{{ section.content }}</p>
+</article>
+{% endfor %}
+</section>
+
+<footer>
+<div class="footer-top">
+
+<div class="footer-brand">
+<div class="company">{{ company_name }}</div>
+{% if footer.tagline %}
+<div class="tagline">{{ footer.tagline }}</div>
+{% endif %}
+</div>
+
+<div class="footer-contact">
+{% if footer.website %}<div><a href="{{ footer.website }}">{{ footer.website }}</a></div>{% endif %}
+{% if footer.contact_email %}<div><a href="mailto:{{ footer.contact_email }}">{{ footer.contact_email }}</a></div>{% endif %}
+{% if footer.phone %}<div>{{ footer.phone }}</div>{% endif %}
+{% if footer.address %}<div>{{ footer.address }}</div>{% endif %}
+</div>
+
+</div>
+
+{% if footer.linkedin or footer.twitter %}
+<div class="social-links">
+{% if footer.linkedin %}<a href="{{ footer.linkedin }}">LinkedIn</a>{% endif %}
+{% if footer.twitter %}<a href="{{ footer.twitter }}">Twitter</a>{% endif %}
+</div>
+{% endif %}
+
+<hr class="footer-divider">
+
+{% if footer.copyright %}
+<div class="copy">{{ footer.copyright }}</div>
+{% endif %}
+
+<div class="subscription">{{ footer.subscription_note }}</div>
+
+<div class="footer-bottom">
+<span>{{ footer.privacy }}</span>
+<span>•</span>
+<span>{{ footer.terms }}</span>
+<span>•</span>
+<span>{{ footer.unsubscribe }}</span>
+</div>
+
+</footer>
+</div>
+</body>
+</html>

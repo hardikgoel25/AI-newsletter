@@ -9,20 +9,77 @@ def parse_llm_response(response: str) -> dict:
 
     response = response.strip()
 
-    # Remove markdown fences
-    response = re.sub(r"^```(?:json)?\s*", "", response, flags=re.IGNORECASE)
-    response = re.sub(r"\s*```$", "", response)
+    # -------------------------
+    # Remove Markdown Fences
+    # -------------------------
 
-    # Extract first JSON object
-    match = re.search(r"\{.*\}", response, re.DOTALL)
+    response = re.sub(
+        r"^```(?:json)?\s*",
+        "",
+        response,
+        flags=re.IGNORECASE,
+    )
+
+    response = re.sub(
+        r"\s*```$",
+        "",
+        response,
+    )
+
+    # -------------------------
+    # Extract JSON Object
+    # -------------------------
+
+    match = re.search(
+        r"\{.*\}",
+        response,
+        re.DOTALL,
+    )
 
     if not match:
         raise ValueError("No valid JSON found in LLM response.")
 
-    data = json.loads(match.group())
+    try:
+        data = json.loads(match.group())
+    except json.JSONDecodeError as e:
+        raise ValueError(
+            f"Invalid JSON returned by LLM:\n{e}"
+        ) from e
+
+    # -------------------------
+    # Ensure Required Keys
+    # -------------------------
+
+    data.setdefault("highlights", [])
+    data.setdefault("sections", [])
+    data.setdefault("image_keywords", [])
+    data.setdefault("footer", {})
+
+    # -------------------------
+    # Ensure Footer Keys
+    # -------------------------
+
+    footer = data["footer"]
+
+    for key in [
+        "tagline",
+        "website",
+        "contact_email",
+        "phone",
+        "address",
+        "linkedin",
+        "twitter",
+        "copyright",
+        "subscription_note",
+        "privacy",
+        "terms",
+        "unsubscribe",
+    ]:
+        footer.setdefault(key, "")
 
     # -------------------------
     # Normalize Highlights
+    # (Backward Compatibility)
     # -------------------------
 
     highlights = data.get("highlights", [])
@@ -41,7 +98,7 @@ def parse_llm_response(response: str) -> dict:
             "Cloud": "☁️",
             "API": "🔗",
             "Partnership": "🤝",
-            "Growth": "📈"
+            "Growth": "📈",
         }
 
         def choose_icon(text):
@@ -53,22 +110,24 @@ def parse_llm_response(response: str) -> dict:
         normalized = []
 
         for item in highlights:
-            normalized.append({
-                "icon": choose_icon(item),
-                "title": item if len(item) <= 35 else item[:35] + "...",
-                "subtitle": ""
-            })
+            normalized.append(
+                {
+                    "icon": choose_icon(item),
+                    "title": item if len(item) <= 35 else item[:35] + "...",
+                    "subtitle": "",
+                }
+            )
 
         data["highlights"] = normalized
 
     # -------------------------
-    # Sort Sections
+    # Sort Sections by Priority
     # -------------------------
 
-    if "sections" in data:
+    if data["sections"]:
         data["sections"] = sorted(
             data["sections"],
-            key=lambda x: x.get("priority", 999)
+            key=lambda x: int(x.get("priority", 999)),
         )
 
     return data

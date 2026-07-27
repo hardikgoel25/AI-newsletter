@@ -62,7 +62,11 @@ with c2:
     address = st.text_area("Address", height=100)
     linkedin = st.text_input("LinkedIn")
     twitter = st.text_input("Twitter / X")
+    instagram = st.text_input("Instagram")
+    youtube = st.text_input("YouTube")
     tagline = st.text_input("Company Tagline")
+
+publication_date = st.text_input("Publication Date", value="July 2026")
 
 company_updates = st.text_area(
     "Paste Company Updates",
@@ -85,20 +89,20 @@ if st.button("🚀 Generate Newsletter", use_container_width=True):
     try:
         status.write("🧠 Preparing Prompt...")
 
-        company_info = f"""Company Name: {company_name}
-Website: {website}
-Email: {contact_email}
-Phone: {phone}
-Address: {address}
-LinkedIn: {linkedin}
-Twitter: {twitter}
-Tagline: {tagline}
-
-Company Updates:
-{company_updates}
-"""
-
-        prompt = NEWSLETTER_JSON_PROMPT.format(content=company_info)
+        prompt = NEWSLETTER_JSON_PROMPT.format(
+    company_name=company_name,
+    tagline=tagline,
+    website=website,
+    contact_email=contact_email,
+    phone=phone,
+    address=address,
+    linkedin=linkedin,
+    twitter=twitter,
+    instagram=instagram,
+    youtube=youtube,
+    publication_date=publication_date,
+    content=company_updates,
+)
 
         status.write("🤖 Generating Newsletter...")
         raw_response = client.generate(prompt)
@@ -115,6 +119,8 @@ Company Updates:
         footer["linkedin"] = linkedin or footer.get("linkedin","")
         footer["twitter"] = twitter or footer.get("twitter","")
         footer["tagline"] = tagline or footer.get("tagline","")
+        footer["instagram"] = instagram or footer.get("instagram", "")
+        footer["youtube"] = youtube or footer.get("youtube", "")
         if company_name:
             data["company_name"] = company_name
 

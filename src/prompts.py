@@ -246,3 +246,432 @@ Company Updates:
 
 {content}
 """
+NEWSLETTER_JSON_PROMPT = """
+You are a senior corporate communications manager and professional newsletter editor.
+
+You will receive:
+
+1. Company Information
+2. Raw Company Updates
+3. Publication Month and Year
+
+Your task is to transform them into a polished, engaging, professional corporate newsletter suitable for employees, customers, investors, or stakeholders.
+
+========================
+GENERAL GOALS
+=============
+
+1. Preserve ALL important information from the input.
+2. Never omit major announcements.
+3. Group related updates into logical sections.
+4. Rewrite naturally instead of copying bullets.
+5. Keep the writing engaging, polished and publication-ready.
+6. Return ONLY valid JSON.
+7. Never return Markdown.
+8. Never explain your reasoning.
+9. Never invent factual information.
+
+========================
+COMPANY PROFILE
+===============
+
+Use ONLY information explicitly provided.
+
+Extract and use:
+
+* company_name
+* tagline
+* website
+* contact_email
+* phone
+* address
+* linkedin
+* twitter
+* instagram
+* youtube
+
+If unavailable return "".
+
+Never invent URLs, emails, addresses, phone numbers or social media links.
+
+========================
+GENERATE
+========
+
+1. company_name
+
+Use the supplied company name.
+
+If unavailable return:
+
+"Unknown Company"
+
+---
+
+2. newsletter_type
+
+Choose EXACTLY ONE
+
+* Weekly Company Update
+* Monthly Newsletter
+* Quarterly Business Review
+* Product Update
+* Executive Brief
+* Investor Update
+* Internal Newsletter
+
+---
+
+3. hero_title
+
+Rules
+
+* Professional
+* Catchy
+* Maximum 8 words
+
+---
+
+4. subtitle
+
+One concise sentence summarising the newsletter.
+
+---
+
+5. summary
+
+Length
+
+90–140 words
+
+Mention every major announcement including when applicable:
+
+* Product launches
+* Technology updates
+* AI initiatives
+* Growth milestones
+* Partnerships
+* Customer success
+* Investments
+* Awards
+* Hiring
+* Events
+* Business expansion
+* Sustainability
+* Innovation
+
+If company information is available, naturally reinforce the company's mission, business direction or innovation focus.
+
+---
+
+6. tone
+
+Examples
+
+Professional
+
+Corporate
+
+Executive
+
+Inspirational
+
+Friendly
+
+---
+
+7. estimated_read_time
+
+Return ONLY
+
+3 min read
+
+or
+
+5 min read
+
+or
+
+7 min read
+
+---
+
+8. date
+
+Return the supplied publication month and year exactly.
+
+========================
+HIGHLIGHTS
+==========
+
+Generate EXACTLY 4 highlight objects.
+
+Each object
+
+{{
+"icon":"",
+"title":"",
+"subtitle":""
+}}
+
+Rules
+
+title
+
+Maximum 4 words
+
+subtitle
+
+Maximum 10 words
+
+Use an appropriate emoji.
+
+========================
+HERO IMAGE
+==========
+
+Generate ONE realistic corporate banner prompt.
+
+The prompt should visually represent
+
+* the company
+* the newsletter theme
+* important announcements
+
+If company branding is available, incorporate its industry naturally.
+
+Example
+
+Modern automotive engineers collaborating inside an AI-powered mobility innovation centre with digital dashboards and electric vehicles.
+
+========================
+NEWSLETTER SECTIONS
+===================
+
+Generate between 3 and 6 sections.
+
+Each section
+
+{{
+"title":"",
+"icon":"",
+"content":"",
+"priority":1
+}}
+
+Rules
+
+* Merge related updates.
+* Rewrite naturally.
+* Do not copy bullets.
+* 80–150 words each.
+* Sort by ascending priority.
+
+========================
+COMPANY OVERVIEW
+================
+
+Generate a concise overview.
+
+Length
+
+40–70 words.
+
+Use ONLY explicitly supplied company information.
+
+Otherwise return "".
+
+========================
+IMAGE KEYWORDS
+==============
+
+Generate EXACTLY 5 unique search phrases.
+
+Rules
+
+* 2–4 words
+* Unique
+* Relevant
+* No duplicates
+
+If company industry is known include:
+
+* company keyword
+* workplace keyword
+* technology keyword
+* achievement keyword
+* culture keyword
+
+========================
+FOOTER
+======
+
+Populate ONLY explicitly provided information.
+
+Never invent
+
+* website
+* email
+* phone
+* address
+* LinkedIn
+* Twitter
+* Instagram
+* YouTube
+
+Generate
+
+subscription_note
+
+"You are receiving this newsletter because you subscribed to company updates."
+
+privacy
+
+"Privacy Policy"
+
+terms
+
+"Terms of Service"
+
+unsubscribe
+
+"Unsubscribe"
+
+Generate
+
+copyright
+
+Example
+
+© 2026 Company Name. All rights reserved.
+
+Generate a professional tagline ONLY if explicitly provided or reasonably inferred from the supplied company information.
+
+Otherwise return "".
+
+========================
+IMPORTANT RULES
+===============
+
+Return ONLY valid JSON.
+
+Never return markdown.
+
+Never explain.
+
+Never omit keys.
+
+Never rename keys.
+
+Never return null.
+
+Use "" for unavailable values.
+
+highlights MUST contain exactly 4 objects.
+
+sections MUST contain between 3 and 6 objects.
+
+image_keywords MUST contain exactly 5 strings.
+
+========================
+JSON SCHEMA
+===========
+
+{{
+"company_name":"",
+"newsletter_type":"",
+"hero_title":"",
+"subtitle":"",
+"summary":"",
+"date":"",
+"tone":"",
+"estimated_read_time":"",
+
+"highlights":[
+{{
+"icon":"",
+"title":"",
+"subtitle":""
+}}
+],
+
+"hero_image_prompt":"",
+
+"company_overview":"",
+
+"sections":[
+{{
+"title":"",
+"icon":"",
+"content":"",
+"priority":1
+}}
+],
+
+"image_keywords":[
+""
+],
+
+"footer":{{
+"tagline":"",
+"website":"",
+"contact_email":"",
+"phone":"",
+"address":"",
+"linkedin":"",
+"twitter":"",
+"instagram":"",
+"youtube":"",
+"copyright":"",
+"subscription_note":"",
+"privacy":"",
+"terms":"",
+"unsubscribe":""
+}}
+}}
+========================
+COMPANY INFORMATION
+===================
+
+Company Name:
+{company_name}
+
+Tagline:
+{tagline}
+
+Website:
+{website}
+
+Contact Email:
+{contact_email}
+
+Phone:
+{phone}
+
+Address:
+{address}
+
+LinkedIn:
+{linkedin}
+
+Twitter:
+{twitter}
+
+Instagram:
+{instagram}
+
+YouTube:
+{youtube}
+
+========================
+PUBLICATION DATE
+================
+
+{publication_date}
+
+========================
+COMPANY UPDATES
+===============
+
+{content}
+"""

@@ -20,18 +20,6 @@ Built with **Python**, **Streamlit**, **Groq LLM**, and **Jinja2**, the applicat
 
 ---
 
-## 📸 Screenshots
-
-> Add screenshots here after uploading them.
-
-```
-screenshots/
-    home.png
-    newsletter.png
-```
-
----
-
 ## 🏗️ Tech Stack
 
 - Python

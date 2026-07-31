@@ -15,7 +15,7 @@ OUTPUT_DIR = BASE_DIR / "output"
 # -----------------------------
 env = Environment(
     loader=FileSystemLoader(str(TEMPLATE_DIR)),
-    autoescape=True
+    autoescape=True,
 )
 
 
@@ -23,59 +23,76 @@ def render_newsletter(newsletter_data):
     """
     Render newsletter HTML.
 
-    Features:
+    Features
+    --------
     - Automatic theme selection
-    - Automatic hero image generation
-    - Optional uploaded hero image
-    - Optional uploaded logo
+    - Uploaded/custom logo support
+    - Uploaded/custom banner support
+    - Automatic Unsplash banner search
     """
 
     data = newsletter_data.copy()
 
     # -----------------------------
-    # Theme / Template
+    # Theme
     # -----------------------------
     theme = data.get("theme", "dark").lower()
-    default_template = (
-        "newsletter_light" if theme == "light" else "newsletter_dark"
+
+    template_name = (
+        "newsletter_light.html"
+        if theme == "light"
+        else "newsletter_dark.html"
     )
 
     try:
-        template = env.get_template(f"{default_template}.html")
+        template = env.get_template(template_name)
     except TemplateNotFound as e:
         raise FileNotFoundError(
-            f"Template '{default_template}.html' not found."
+            f"Template '{template_name}' not found."
         ) from e
+
+    # -----------------------------
+    # Ensure Footer Exists
+    # -----------------------------
+    if not isinstance(data.get("footer"), dict):
+        data["footer"] = {}
 
     # -----------------------------
     # Logo
     # -----------------------------
+    default_logo = (
+        "../assets/logo.svg"
+        if (BASE_DIR / "assets/logo.svg").exists()
+        else "../assets/logo.png"
+    )
+
     if data.get("custom_logo"):
         for ext in [".svg", ".png", ".webp", ".jpg", ".jpeg"]:
             logo = BASE_DIR / f"generated/logo{ext}"
+
             if logo.exists():
                 data["logo"] = f"../generated/logo{ext}"
                 break
+        else:
+            data["logo"] = default_logo
     else:
-        if (BASE_DIR / "assets/logo.svg").exists():
-            data["logo"] = "../assets/logo.svg"
-        else:
-            data["logo"] = "../assets/logo.png"
-
-    # Fallback if no uploaded logo found
-    if "logo" not in data:
-        if (BASE_DIR / "assets/logo.svg").exists():
-            data["logo"] = "../assets/logo.svg"
-        else:
-            data["logo"] = "../assets/logo.png"
+        data["logo"] = default_logo
 
     # -----------------------------
     # Hero Image
     # -----------------------------
     if data.get("custom_banner"):
         data["hero_placeholder"] = "../generated/banner.jpg"
+
     else:
-        banner = download_image(data.get("image_keywords", []))
+        # Prefer manual keywords if provided
+        keywords = (
+            data.get("manual_image_keywords")
+            or data.get("image_keywords", [])
+        )
+
+        banner = download_image(keywords)
+
         if banner:
             data["hero_placeholder"] = "../generated/banner.jpg"
         else:
@@ -93,6 +110,7 @@ def save_html(html, filename="newsletter.html"):
     """
     Save rendered newsletter HTML.
     """
+
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
     output_file = OUTPUT_DIR / filename

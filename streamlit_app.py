@@ -48,8 +48,77 @@ if use_custom_banner:
     if banner:
         hero_path = GENERATED_DIR / "banner.jpg"
         hero_path.write_bytes(banner.getbuffer())
+        
+st.sidebar.divider()
+st.sidebar.subheader("🖼 Hero Image")
+
+##banner_prompt = st.sidebar.text_input(
+##    "Banner Prompt (Optional)",
+##    placeholder="Modern AI office with blue lighting"
+##)
+
+manual_image_keywords = st.sidebar.text_input(
+    "Image Keywords (Optional)",
+    placeholder="technology, ai, office"
+)
 
 theme = st.sidebar.selectbox("🎨 Theme", ["Dark","Light"], index=0)
+
+st.sidebar.divider()
+st.sidebar.subheader("📰 Newsletter Settings")
+
+newsletter_type = st.sidebar.selectbox(
+    "Newsletter Type",
+    [
+        "Corporate",
+        "Weekly Update",
+        "Monthly Update",
+        "Product Launch",
+        "Investor Update",
+        "Internal Newsletter",
+        "HR Newsletter",
+        "Marketing",
+        "Custom"
+    ]
+)
+
+tone = st.sidebar.selectbox(
+    "Tone",
+    [
+        "Professional",
+        "Executive",
+        "Friendly",
+        "Technical",
+        "Marketing",
+        "Minimal",
+        "Inspirational"
+    ]
+)
+
+reading_time = st.sidebar.selectbox(
+    "Estimated Reading Time",
+    [
+        "Auto",
+        "3 min",
+        "5 min",
+        "7 min",
+        "10 min"
+    ]
+)
+
+highlight_count = st.sidebar.slider(
+    "Highlights",
+    2,
+    8,
+    4
+)
+
+section_count = st.sidebar.slider(
+    "Sections",
+    3,
+    6,
+    4
+)
 
 st.subheader("🏢 Company Information (Optional)")
 c1,c2 = st.columns(2)
@@ -58,11 +127,31 @@ with c1:
     website = st.text_input("Website")
     contact_email = st.text_input("Email")
     phone = st.text_input("Phone")
-with c2:
     address = st.text_area("Address", height=100)
+    tagline = st.text_input("Company Tagline")
+with c2:
+
     linkedin = st.text_input("LinkedIn")
     twitter = st.text_input("Twitter / X")
-    tagline = st.text_input("Company Tagline")
+
+    instagram = st.text_input("Instagram")
+    facebook = st.text_input("Facebook")
+    youtube = st.text_input("YouTube")
+    github = st.text_input("GitHub")
+
+
+st.subheader("✍ Content Overrides")
+
+hero_title_override = st.text_input(
+    "Hero Title (Optional)",
+    placeholder="Leave empty to let AI generate"
+)
+
+summary_override = st.text_area(
+    "Executive Summary (Optional)",
+    height=120,
+    placeholder="Leave empty to let AI generate"
+)
 
 company_updates = st.text_area(
     "Paste Company Updates",
@@ -85,14 +174,40 @@ if st.button("🚀 Generate Newsletter", use_container_width=True):
     try:
         status.write("🧠 Preparing Prompt...")
 
-        company_info = f"""Company Name: {company_name}
+        company_info = f"""
+Company Name: {company_name}
+
 Website: {website}
+
 Email: {contact_email}
+
 Phone: {phone}
+
 Address: {address}
+
 LinkedIn: {linkedin}
+
 Twitter: {twitter}
+
+Instagram: {instagram}
+
+Facebook: {facebook}
+
+YouTube: {youtube}
+
+GitHub: {github}
+
 Tagline: {tagline}
+
+Newsletter Type: {newsletter_type}
+
+Tone: {tone}
+
+Estimated Reading Time: {reading_time}
+
+Generate exactly {highlight_count} highlights.
+
+Generate exactly {section_count} sections.
 
 Company Updates:
 {company_updates}
@@ -105,7 +220,29 @@ Company Updates:
 
         status.write("📄 Validating JSON...")
         data = parse_llm_response(raw_response)
+        # Theme
         data["theme"] = theme.lower()
+        if reading_time != "Auto":
+            data["estimated_read_time"] = reading_time
+
+        # Override hero title
+        if hero_title_override.strip():
+            data["hero_title"] = hero_title_override.strip()
+
+        # Override summary
+        if summary_override.strip():
+            data["summary"] = summary_override.strip()
+            
+        ##if banner_prompt.strip():
+        ##    data["banner_prompt"] = banner_prompt.strip()
+
+        if manual_image_keywords.strip():
+            manual_keywords = [
+                k.strip()
+                for k in manual_image_keywords.split(",")
+                if k.strip()
+            ]           
+            data["manual_image_keywords"] = manual_keywords
 
         footer = data.setdefault("footer", {})
         footer["website"] = website or footer.get("website","")
@@ -115,6 +252,10 @@ Company Updates:
         footer["linkedin"] = linkedin or footer.get("linkedin","")
         footer["twitter"] = twitter or footer.get("twitter","")
         footer["tagline"] = tagline or footer.get("tagline","")
+        footer["instagram"] = instagram or footer.get("instagram", "")
+        footer["facebook"] = facebook or footer.get("facebook", "") 
+        footer["youtube"] = youtube or footer.get("youtube", "")
+        footer["github"] = github or footer.get("github", "")
         if company_name:
             data["company_name"] = company_name
 
@@ -134,7 +275,18 @@ Company Updates:
 
         html_content = output_file.read_text(encoding="utf-8")
 
-        st.success(f"🎉 Newsletter generated successfully! ({len(data.get('sections',[]))} sections, {len(data.get('highlights',[]))} highlights)")
+        st.success(
+    f"""
+🎉 Newsletter generated successfully!
+
+Theme: {theme}
+Type: {newsletter_type}
+Tone: {tone}
+
+Sections: {len(data.get("sections", []))}
+Highlights: {len(data.get("highlights", []))}
+"""
+)
 
         with st.expander("📦 Generated JSON"):
             st.json(data)

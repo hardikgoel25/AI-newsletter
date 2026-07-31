@@ -1,7 +1,6 @@
 import json
 import re
 
-
 def parse_llm_response(response: str) -> dict:
     """
     Parse and normalize JSON returned by the LLM.
@@ -50,10 +49,24 @@ def parse_llm_response(response: str) -> dict:
     # Ensure Required Keys
     # -------------------------
 
-    data.setdefault("highlights", [])
-    data.setdefault("sections", [])
-    data.setdefault("image_keywords", [])
+    if not isinstance(data.get("highlights"), list):
+        data["highlights"] = []
+
+    if not isinstance(data.get("sections"), list):
+        data["sections"] = []
+
+    if not isinstance(data.get("image_keywords"), list):
+        data["image_keywords"] = []
     data.setdefault("footer", {})
+    data.setdefault("company_name", "Unknown Company")
+    data.setdefault("newsletter_type", "")
+    data.setdefault("hero_title", "")
+    data.setdefault("subtitle", "")
+    data.setdefault("summary", "")
+    data.setdefault("date", "")
+    data.setdefault("tone", "")
+    data.setdefault("estimated_read_time", "")
+    data.setdefault("hero_image_prompt", "")
 
     # -------------------------
     # Ensure Footer Keys
@@ -62,18 +75,22 @@ def parse_llm_response(response: str) -> dict:
     footer = data["footer"]
 
     for key in [
-        "tagline",
-        "website",
-        "contact_email",
-        "phone",
-        "address",
-        "linkedin",
-        "twitter",
-        "copyright",
-        "subscription_note",
-        "privacy",
-        "terms",
-        "unsubscribe",
+    "tagline",
+    "website",
+    "contact_email",
+    "phone",
+    "address",
+    "linkedin",
+    "twitter",
+    "instagram",
+    "facebook",
+    "youtube",
+    "github",
+    "copyright",
+    "subscription_note",
+    "privacy",
+    "terms",
+    "unsubscribe",
     ]:
         footer.setdefault(key, "")
 
@@ -119,6 +136,32 @@ def parse_llm_response(response: str) -> dict:
             )
 
         data["highlights"] = normalized
+        
+    normalized_highlights = []
+
+    for item in data["highlights"]:
+        if isinstance(item, dict):
+            normalized_highlights.append({
+            "icon": item.get("icon", "⭐"),
+            "title": item.get("title", ""),
+            "subtitle": item.get("subtitle", "")
+        })
+
+    data["highlights"] = normalized_highlights
+
+        
+    normalized_sections = []
+
+    for section in data["sections"]:
+        if isinstance(section, dict):
+            normalized_sections.append({
+                "title": section.get("title", ""),
+                "icon": section.get("icon", "📰"),
+                "content": section.get("content", ""),
+                "priority": section.get("priority", 999)
+            })
+
+    data["sections"] = normalized_sections
 
     # -------------------------
     # Sort Sections by Priority
@@ -127,7 +170,11 @@ def parse_llm_response(response: str) -> dict:
     if data["sections"]:
         data["sections"] = sorted(
             data["sections"],
-            key=lambda x: int(x.get("priority", 999)),
+            key=lambda x: (
+    int(x["priority"])
+    if str(x.get("priority", "")).isdigit()
+    else 999
+)
         )
 
     return data

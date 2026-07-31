@@ -176,7 +176,9 @@ h1{font-size:2.2rem}
 <span>{{ date }}</span><div class="divider"></div><span>{{ estimated_read_time }}</span>
 </div>
 <h1>{{ hero_title }}</h1>
+{% if subtitle %}
 <p class="subtitle">{{ subtitle }}</p>
+{% endif %}
 <img src="{{ hero_placeholder }}" alt="{{ hero_title }}">
 </section>
 
@@ -215,7 +217,13 @@ h1{font-size:2.2rem}
 </div>
 
 <div class="footer-contact">
-{% if footer.website %}<div><a href="{{ footer.website }}">{{ footer.website }}</a></div>{% endif %}
+{% if footer.website %}<div><a
+href="{{ footer.website }}"
+target="_blank"
+rel="noopener"
+>
+{{ footer.website }}
+</a></div>{% endif %}
 {% if footer.contact_email %}<div><a href="mailto:{{ footer.contact_email }}">{{ footer.contact_email }}</a></div>{% endif %}
 {% if footer.phone %}<div>{{ footer.phone }}</div>{% endif %}
 {% if footer.address %}<div>{{ footer.address }}</div>{% endif %}
@@ -223,10 +231,38 @@ h1{font-size:2.2rem}
 
 </div>
 
-{% if footer.linkedin or footer.twitter %}
+{% if footer.linkedin
+   or footer.twitter
+   or footer.instagram
+   or footer.facebook
+   or footer.youtube
+   or footer.github %}
 <div class="social-links">
-{% if footer.linkedin %}<a href="{{ footer.linkedin }}">LinkedIn</a>{% endif %}
-{% if footer.twitter %}<a href="{{ footer.twitter }}">Twitter</a>{% endif %}
+
+{% if footer.linkedin %}
+<a href="{{ footer.linkedin }}">LinkedIn</a>
+{% endif %}
+
+{% if footer.twitter %}
+<a href="{{ footer.twitter }}">Twitter</a>
+{% endif %}
+
+{% if footer.instagram %}
+<a href="{{ footer.instagram }}">Instagram</a>
+{% endif %}
+
+{% if footer.facebook %}
+<a href="{{ footer.facebook }}">Facebook</a>
+{% endif %}
+
+{% if footer.youtube %}
+<a href="{{ footer.youtube }}">YouTube</a>
+{% endif %}
+
+{% if footer.github %}
+<a href="{{ footer.github }}">GitHub</a>
+{% endif %}
+
 </div>
 {% endif %}
 

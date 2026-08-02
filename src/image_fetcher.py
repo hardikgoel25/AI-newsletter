@@ -16,7 +16,7 @@ HEADERS = {
 }
 
 
-def _download(query: str):
+def _download(query: str, output_path: Path):
     """Attempt to download a single image for a query."""
 
     response = requests.get(
@@ -26,7 +26,7 @@ def _download(query: str):
             "query": query,
             "orientation": "landscape",
         },
-        timeout=15,
+        timeout=(5,20),
     )
 
     print(f"[Unsplash] Query: {query}")
@@ -38,47 +38,93 @@ def _download(query: str):
 
     response.raise_for_status()
 
-    image_url = response.json()["urls"]["regular"]
+    image_data = response.json()
+
+    image_url = (
+        image_data.get("urls", {})
+        .get("regular")
+    )
+
+    if not image_url:
+        return None
 
     image = requests.get(image_url, timeout=20)
     image.raise_for_status()
 
-    with open(BANNER_PATH, "wb") as f:
+    with open(output_path, "wb") as f:
         f.write(image.content)
 
-    print(f"[Unsplash] Saved banner -> {BANNER_PATH}")
+    print(f"[Unsplash] Saved banner -> {output_path}")
 
-    return str(BANNER_PATH)
+    return str(output_path)
 
 
-def download_image(keywords):
+def download_image(
+    company_name="",
+    keywords=None,
+    custom_query=None,
+    filename="banner.jpg",
+):
+    """
+    Download a banner image.
+
+    Priority:
+    1. Custom query
+    2. Company + keywords
+    3. Keywords
+    4. Generic fallbacks
+    """
+
+    if keywords is None:
+        keywords = []
+
     if isinstance(keywords, str):
         keywords = [keywords]
 
     keywords = [k.strip() for k in keywords if k.strip()]
 
+    output_path = GENERATED_DIR / filename
+
     search_queries = []
 
-    # 1. Original approach (highest relevance)
+    # Highest priority
+    if custom_query:
+        search_queries.append(custom_query.strip())
+
+    # Company-aware searches
+    if company_name and len(keywords) >= 2:
+        search_queries.append(
+            f"{company_name} {keywords[0]} {keywords[1]}"
+        )
+
+    if company_name and keywords:
+        search_queries.append(
+            f"{company_name} {keywords[0]}"
+        )
+
+    if company_name:
+        search_queries.extend([
+            company_name,
+            f"{company_name} headquarters",
+            f"{company_name} office",
+        ])
+
+    # Original search
     if keywords:
         search_queries.append(" ".join(keywords))
 
-    # 2. Slightly simplified
     if len(keywords) >= 5:
         search_queries.append(" ".join(keywords[:5]))
 
-    # 3. Top 3 keywords
     if len(keywords) >= 3:
         search_queries.append(" ".join(keywords[:3]))
 
-    # 4. Top 2 keywords
     if len(keywords) >= 2:
         search_queries.append(" ".join(keywords[:2]))
 
-    # 5. Individual keywords
     search_queries.extend(keywords)
 
-    # 6. Generic fallbacks
+    # Generic fallbacks
     search_queries.extend([
         "business technology",
         "corporate office",
@@ -89,15 +135,20 @@ def download_image(keywords):
 
     for query in search_queries:
 
-        query = query.strip()
+        query = " ".join(query.split())
 
-        if not query or query.lower() in tried:
+        if not query:
             continue
 
-        tried.add(query.lower())
+        key = query.lower()
+
+        if key in tried:
+            continue
+
+        tried.add(key)
 
         try:
-            result = _download(query)
+            result = _download(query, output_path)
 
             if result:
                 print(f"[Unsplash] Success using: {query}")

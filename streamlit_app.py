@@ -12,6 +12,7 @@ from src.llm import LLMClient
 from src.prompts import NEWSLETTER_JSON_PROMPT
 from src.parser import parse_llm_response
 from src.renderer import render_newsletter, save_html
+from src.image_fetcher import download_image
 from src.embed_assets import embed_images
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -22,6 +23,17 @@ client = LLMClient(
     provider="groq",
     model="llama-3.3-70b-versatile"
 )
+
+if "newsletter_data" not in st.session_state:
+    st.session_state.newsletter_data = None
+
+if "html_content" not in st.session_state:
+    st.session_state.html_content = None
+
+if "output_file" not in st.session_state:
+    st.session_state.output_file = None
+if "current_theme" not in st.session_state:
+    st.session_state.current_theme = "dark"
 
 st.set_page_config(page_title="AI Newsletter Generator", page_icon="📰", layout="wide")
 st.title("📰 AI Newsletter Generator")
@@ -62,7 +74,11 @@ manual_image_keywords = st.sidebar.text_input(
     placeholder="technology, ai, office"
 )
 
-theme = st.sidebar.selectbox("🎨 Theme", ["Dark","Light"], index=0)
+theme = st.sidebar.selectbox(
+    "🎨 Theme",
+    ["Dark", "Light"],
+    index=0 if st.session_state.current_theme == "dark" else 1,
+)
 
 st.sidebar.divider()
 st.sidebar.subheader("📰 Newsletter Settings")
@@ -157,10 +173,10 @@ company_updates = st.text_area(
     "Paste Company Updates",
     height=350,
     placeholder="""• TechNova launched AI Assistant 2.0
-• Crossed 100,000 active users
-• Partnered with Microsoft Azure
-• Opened Bangalore Office
-• Hiring ML Engineers"""
+    • Crossed 100,000 active users
+    • Partnered with Microsoft Azure
+    • Opened Bangalore Office
+    • Hiring ML Engineers"""
 )
 
 if st.button("🚀 Generate Newsletter", use_container_width=True):
@@ -175,43 +191,43 @@ if st.button("🚀 Generate Newsletter", use_container_width=True):
         status.write("🧠 Preparing Prompt...")
 
         company_info = f"""
-Company Name: {company_name}
+            Company Name: {company_name}
 
-Website: {website}
+            Website: {website}
 
-Email: {contact_email}
+            Email: {contact_email}
 
-Phone: {phone}
+            Phone: {phone}
 
-Address: {address}
+            Address: {address}
 
-LinkedIn: {linkedin}
+            LinkedIn: {linkedin}
 
-Twitter: {twitter}
+            Twitter: {twitter}
 
-Instagram: {instagram}
+            Instagram: {instagram}
 
-Facebook: {facebook}
+            Facebook: {facebook}
 
-YouTube: {youtube}
+            YouTube: {youtube}
 
-GitHub: {github}
+            GitHub: {github}
 
-Tagline: {tagline}
+            Tagline: {tagline}
 
-Newsletter Type: {newsletter_type}
+            Newsletter Type: {newsletter_type}
 
-Tone: {tone}
+            Tone: {tone}
 
-Estimated Reading Time: {reading_time}
+            Estimated Reading Time: {reading_time}
 
-Generate exactly {highlight_count} highlights.
+            Generate exactly {highlight_count} highlights.
 
-Generate exactly {section_count} sections.
+            Generate exactly {section_count} sections.
 
-Company Updates:
-{company_updates}
-"""
+            Company Updates:
+            {company_updates}
+            """
 
         prompt = NEWSLETTER_JSON_PROMPT.format(content=company_info)
 
@@ -245,19 +261,27 @@ Company Updates:
             data["manual_image_keywords"] = manual_keywords
 
         footer = data.setdefault("footer", {})
-        footer["website"] = website or footer.get("website","")
-        footer["contact_email"] = contact_email or footer.get("contact_email","")
-        footer["phone"] = phone or footer.get("phone","")
-        footer["address"] = address or footer.get("address","")
-        footer["linkedin"] = linkedin or footer.get("linkedin","")
-        footer["twitter"] = twitter or footer.get("twitter","")
-        footer["tagline"] = tagline or footer.get("tagline","")
-        footer["instagram"] = instagram or footer.get("instagram", "")
-        footer["facebook"] = facebook or footer.get("facebook", "") 
-        footer["youtube"] = youtube or footer.get("youtube", "")
-        footer["github"] = github or footer.get("github", "")
-        if company_name:
-            data["company_name"] = company_name
+
+        footer_fields = {
+            "website": website,
+            "contact_email": contact_email,
+            "phone": phone,
+            "address": address,
+            "linkedin": linkedin,
+            "twitter": twitter,
+            "instagram": instagram,
+            "facebook": facebook,
+            "youtube": youtube,
+            "github": github,
+            "tagline": tagline,
+        }
+
+        for key, value in footer_fields.items():
+            if value.strip():
+                footer[key] = value.strip()
+                
+        if company_name.strip():
+            data["company_name"] = company_name.strip()
 
         if logo_path:
             data["custom_logo"] = True
@@ -274,39 +298,81 @@ Company Updates:
         status.update(label="✅ Newsletter Generated Successfully!", state="complete")
 
         html_content = output_file.read_text(encoding="utf-8")
+        st.session_state.newsletter_data = data
+        st.session_state.html_content = html_content
+        st.session_state.output_file = output_file
+        st.session_state.current_theme = theme.lower()
 
         st.success(
-    f"""
-🎉 Newsletter generated successfully!
+            f"""
+            🎉 Newsletter generated successfully!
 
-Theme: {theme}
-Type: {newsletter_type}
-Tone: {tone}
+            Theme: {theme}
+            Type: {newsletter_type}
+            Tone: {tone}
 
-Sections: {len(data.get("sections", []))}
-Highlights: {len(data.get("highlights", []))}
-"""
-)
-
+            Sections: {len(data.get("sections", []))}
+            Highlights: {len(data.get("highlights", []))}
+            """
+        )
+        st.divider()
         with st.expander("📦 Generated JSON"):
             st.json(data)
+        if st.button("🔄 Regenerate Hero Image", use_container_width=True):
+
+            keywords = (
+                st.session_state.newsletter_data.get("manual_image_keywords")
+                or st.session_state.newsletter_data.get("image_keywords", [])
+            )
+
+            company = st.session_state.newsletter_data.get(
+                "company_name",
+                "",
+            )
+
+            with st.spinner("Generating a new hero image..."):
+                download_image(
+                    company_name=company,
+                    keywords=keywords,
+                    filename="banner.jpg",
+                )
+
+            html = render_newsletter(
+                st.session_state.newsletter_data
+            )
+
+            html = embed_images(html, BASE_DIR)
+
+            output_file = save_html(
+                html,
+                filename=f"newsletter_{st.session_state.current_theme}.html",
+            )
+
+            st.session_state.output_file = output_file
+            st.session_state.html_content = output_file.read_text(
+                encoding="utf-8"
+            )
+
+            st.toast("✅ Hero image regenerated!")
+
+            st.rerun()
 
         is_cloud = os.getenv("STREAMLIT_SERVER_HEADLESS") == "true"
 
         if is_cloud:
             st.subheader("📄 Newsletter Preview")
-            components.html(html_content, height=1000, scrolling=True)
+            components.html(st.session_state.html_content, height=1000, scrolling=True)
         else:
             try:
-                os.startfile(output_file)
+                os.startfile(st.session_state.output_file)
             except (AttributeError,OSError):
-                webbrowser.open(output_file.resolve().as_uri())
+                webbrowser.open(st.session_state.output_file.resolve().as_uri())
             with st.expander("📄 Preview inside Streamlit"):
-                components.html(html_content, height=1000, scrolling=True)
+                components.html(st.session_state.html_content, height=1000, scrolling=True)
 
         st.download_button(
             "📥 Download HTML",
-            data=html_content,
+            data=st.session_state.html_content,
             file_name=f"newsletter_{theme.lower()}.html",
             mime="text/html",
             use_container_width=True,
@@ -314,12 +380,11 @@ Highlights: {len(data.get("highlights", []))}
 
         st.download_button(
             "📥 Download JSON",
-            data=json.dumps(data, indent=2),
+            data=json.dumps(st.session_state.newsletter_data, indent=2),
             file_name="newsletter.json",
             mime="application/json",
             use_container_width=True,
         )
-
     except Exception as e:
         status.update(label="❌ Generation Failed", state="error")
         st.exception(e)

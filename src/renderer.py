@@ -32,6 +32,8 @@ def render_newsletter(newsletter_data):
     """
 
     data = newsletter_data.copy()
+    data.setdefault("manual_image_keywords", [])
+    data.setdefault("company_name", "")
 
     # -----------------------------
     # Theme
@@ -85,13 +87,19 @@ def render_newsletter(newsletter_data):
         data["hero_placeholder"] = "../generated/banner.jpg"
 
     else:
-        # Prefer manual keywords if provided
-        keywords = (
-            data.get("manual_image_keywords")
-            or data.get("image_keywords", [])
-        )
 
-        banner = download_image(keywords)
+        keywords = data.get("manual_image_keywords")
+
+        if not keywords:
+            keywords = data.get("image_keywords", [])
+
+        company_name = data.get("company_name", "")
+
+        banner = download_image(
+            company_name=company_name,
+            keywords=keywords,
+            filename="banner.jpg",
+        )
 
         if banner:
             data["hero_placeholder"] = "../generated/banner.jpg"

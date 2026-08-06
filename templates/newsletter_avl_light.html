@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>{{ company_name }} — {{ newsletter_type }}</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+
+:root{
+
+--primary: {{ primary }};
+--secondary: {{ secondary }};
+--tertiary: {{ tertiary }};
+--accent: {{ accent }};
+
+--gradient: {{ primary_gradient }};
+
+--bg:#eef3f5;
+--card:#ffffff;
+
+--border:#dce5e7;
+
+--text:#263238;
+--muted:#667085;
+
+--radius:22px;
+
+}
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+}
+
+html{
+scroll-behavior:smooth;
+}
+
+body{
+
+font-family:"Inter",sans-serif;
+
+background:var(--bg);
+
+color:var(--text);
+
+padding:40px 20px;
+
+line-height:1.75;
+
+}
+
+.wrapper{
+
+max-width:980px;
+
+margin:auto;
+
+background:white;
+
+border-radius:28px;
+
+overflow:hidden;
+
+box-shadow:
+0 12px 40px rgba(0,0,0,.08);
+
+}
+
+a{
+
+color:inherit;
+
+text-decoration:none;
+
+}
+
+img{
+
+display:block;
+
+max-width:100%;
+
+}
+/* ---------------------------------- */
+/* Header                             */
+/* ---------------------------------- */
+
+header{
+
+background:var(--gradient);
+
+padding:42px 52px;
+
+color:white;
+
+display:flex;
+
+justify-content:space-between;
+
+align-items:center;
+
+gap:24px;
+
+}
+
+.brand{
+
+display:flex;
+
+align-items:center;
+
+gap:18px;
+
+}
+
+.logo{
+
+height:60px;
+
+width:auto;
+
+object-fit:contain;
+
+color:white;
+
+filter:brightness(0) invert(1);
+
+}
+
+.company{
+
+font-size:2rem;
+
+font-weight:700;
+
+letter-spacing:-0.02em;
+
+}
+
+.tagline{
+
+margin-top:6px;
+
+font-size:.95rem;
+
+opacity:.92;
+
+font-weight:400;
+
+}
+
+.type{
+
+padding:10px 18px;
+
+background:rgba(255,255,255,.18);
+
+border:1px solid rgba(255,255,255,.35);
+
+border-radius:999px;
+
+font-size:.78rem;
+
+font-weight:700;
+
+letter-spacing:.12em;
+
+text-transform:uppercase;
+
+backdrop-filter:blur(8px);
+
+}
+/* ---------------------------------- */
+/* Hero                               */
+/* ---------------------------------- */
+
+.hero{
+
+padding:54px;
+
+background:white;
+
+}
+
+.meta{
+
+display:flex;
+
+align-items:center;
+
+gap:14px;
+
+font-size:.82rem;
+
+font-weight:600;
+
+color:var(--muted);
+
+text-transform:uppercase;
+
+letter-spacing:.14em;
+
+margin-bottom:22px;
+
+}
+
+.divider{
+
+width:34px;
+
+height:1px;
+
+background:#cfd8dc;
+
+}
+
+.hero h1{
+
+font-size:3.4rem;
+
+line-height:1.1;
+
+font-weight:800;
+
+letter-spacing:-.03em;
+
+max-width:780px;
+
+margin-bottom:20px;
+
+color:#183b2d;
+
+}
+
+.subtitle{
+
+font-size:1.15rem;
+
+max-width:760px;
+
+color:var(--muted);
+
+margin-bottom:36px;
+
+}
+
+.hero img{
+
+width:100%;
+
+aspect-ratio:16/8;
+
+object-fit:cover;
+
+border-radius:24px;
+
+box-shadow:
+
+0 15px 40px rgba(0,0,0,.12);
+
+}
+/* ---------------------------------- */
+/* Highlights                         */
+/* ---------------------------------- */
+
+.highlights{
+
+display:grid;
+
+grid-template-columns:repeat(2,1fr);
+
+gap:24px;
+
+padding:0 54px 54px;
+
+}
+
+.highlight{
+
+background:white;
+
+border-left:6px solid var(--primary);
+
+border-radius:20px;
+
+padding:28px;
+
+box-shadow:
+
+0 8px 22px rgba(0,0,0,.06);
+
+transition:.25s;
+
+}
+
+.highlight:hover{
+
+transform:translateY(-5px);
+
+}
+
+.highlight .icon{
+
+font-size:2rem;
+
+margin-bottom:14px;
+
+}
+
+.highlight h3{
+
+font-size:1.2rem;
+
+margin-bottom:10px;
+
+color:#153d2c;
+
+}
+
+.highlight p{
+
+color:var(--muted);
+
+}
+/* ---------------------------------- */
+/* Executive Summary                  */
+/* ---------------------------------- */
+
+.summary{
+
+margin:0 54px 54px;
+
+padding:34px;
+
+background:#f7faf9;
+
+border-left:6px solid var(--secondary);
+
+border-radius:20px;
+
+}
+
+.summary-label{
+
+font-size:.82rem;
+
+font-weight:700;
+
+letter-spacing:.18em;
+
+text-transform:uppercase;
+
+color:var(--secondary);
+
+margin-bottom:16px;
+
+}
+
+.summary p{
+
+font-size:1.04rem;
+
+color:#455a64;
+
+line-height:1.8;
+
+}
+
+/* ---------------------------------- */
+/* Sections                           */
+/* ---------------------------------- */
+
+.sections{
+
+padding:0 54px 54px;
+
+}
+
+.section{
+
+padding:36px 0;
+
+border-top:1px solid var(--border);
+
+}
+
+.section:first-child{
+
+border-top:none;
+
+}
+
+.section-title{
+
+display:flex;
+
+align-items:center;
+
+gap:14px;
+
+margin-bottom:18px;
+
+font-size:1.8rem;
+
+font-weight:700;
+
+color:#184a39;
+
+}
+
+.section-icon{
+
+font-size:1.7rem;
+
+}
+
+.section p{
+
+color:#4f5b62;
+
+line-height:1.9;
+
+font-size:1rem;
+
+}
+
+/* ---------------------------------- */
+/* Footer                             */
+/* ---------------------------------- */
+
+footer{
+
+margin-top:10px;
+
+background:var(--gradient);
+
+color:white;
+
+padding:48px 54px;
+
+}
+
+.footer-top{
+
+display:flex;
+
+justify-content:space-between;
+
+gap:40px;
+
+flex-wrap:wrap;
+
+}
+
+.footer-brand{
+
+max-width:420px;
+
+}
+
+.footer-brand h3{
+
+font-size:1.8rem;
+
+margin-bottom:8px;
+
+}
+
+.footer-brand p{
+
+opacity:.85;
+
+line-height:1.7;
+
+}
+
+.footer-contact{
+
+display:flex;
+
+flex-direction:column;
+
+gap:10px;
+
+font-size:.95rem;
+
+}
+
+.footer-contact a{
+
+opacity:.9;
+
+}
+
+.footer-contact a:hover{
+
+opacity:1;
+
+text-decoration:underline;
+
+}
+
+.social-links{
+
+display:flex;
+
+gap:18px;
+
+margin-top:22px;
+
+flex-wrap:wrap;
+
+font-weight:600;
+
+}
+
+.social-links a{
+
+padding:8px 16px;
+
+border-radius:999px;
+
+background:rgba(255,255,255,.15);
+
+opacity:.95;
+
+transition:.2s;
+
+}
+
+.social-links a:hover{
+
+background:rgba(255,255,255,.25);
+
+}
+
+.footer-divider{
+
+border:none;
+
+border-top:1px solid rgba(255,255,255,.15);
+
+margin:32px 0;
+
+}
+
+.subscription{
+
+opacity:.82;
+
+font-size:.9rem;
+
+margin-bottom:20px;
+
+}
+
+.footer-bottom{
+
+display:flex;
+
+justify-content:space-between;
+
+align-items:center;
+
+flex-wrap:wrap;
+
+gap:14px;
+
+font-size:.9rem;
+
+opacity:.75;
+
+}
+
+/* ---------------------------------- */
+/* Mobile                             */
+/* ---------------------------------- */
+
+@media(max-width:768px){
+
+body{
+
+padding:0;
+
+}
+
+.wrapper{
+
+border-radius:0;
+
+}
+
+header,
+.hero,
+.highlights,
+.sections,
+footer{
+
+padding-left:24px;
+padding-right:24px;
+
+}
+
+.highlights{
+
+grid-template-columns:1fr;
+
+padding-bottom:36px;
+
+}
+
+.summary{
+
+margin:0 24px 36px;
+
+}
+
+.hero h1{
+
+font-size:2.4rem;
+
+}
+
+.footer-top{
+
+flex-direction:column;
+
+}
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="wrapper">
+
+<header>
+
+<div class="brand">
+
+<div class="brand">
+
+<img
+class="logo"
+src="{{ logo }}"
+alt="{{ company_name }}"
+>
+
+</div>
+
+<div class="type">
+{{ newsletter_type }}
+</div>
+
+</header>
+
+<section class="hero">
+
+<div class="meta">
+
+{% if date %}
+<span>{{ date }}</span>
+{% endif %}
+
+{% if date and estimated_read_time %}
+<div class="divider"></div>
+{% endif %}
+
+{% if estimated_read_time %}
+<span>{{ estimated_read_time }}</span>
+{% endif %}
+
+</div>
+
+<h1>{{ hero_title }}</h1>
+
+{% if subtitle %}
+<p class="subtitle">
+{{ subtitle }}
+</p>
+{% endif %}
+
+<img
+src="{{ hero_placeholder }}"
+alt="Newsletter Hero Image"
+>
+
+</section>
+<section class="highlights">
+
+{% for highlight in highlights %}
+<div class="highlight">
+<div class="icon">{{ highlight.icon }}</div>
+<h3>{{ highlight.title }}</h3>
+
+{% if highlight.subtitle %}
+<p>{{ highlight.subtitle }}</p>
+{% endif %}
+
+</div>
+{% endfor %}
+
+</section>
+
+<section class="summary">
+
+<div class="summary-label">
+Executive Summary
+</div>
+
+<p>{{ summary }}</p>
+
+</section>
+
+<section class="sections">
+
+{% for section in sections %}
+
+<div class="section">
+
+<div class="section-title">
+<span class="section-icon">{{ section.icon }}</span>
+<span>{{ section.title }}</span>
+</div>
+
+<p>{{ section.content }}</p>
+
+</div>
+
+{% endfor %}
+
+</section>
+
+<footer>
+
+<div class="footer-top">
+
+<div class="footer-brand">
+
+<img
+class="logo"
+src="{{ logo }}"
+alt="{{ company_name }}"
+style="margin-bottom:18px"
+>
+
+{% if footer.tagline %}
+<p>{{ footer.tagline }}</p>
+{% endif %}
+
+</div>
+
+<div class="footer-contact">
+
+{% if footer.website %}
+<div>
+<a href="{{ footer.website }}" target="_blank">
+{{ footer.website }}
+</a>
+</div>
+{% endif %}
+
+{% if footer.contact_email %}
+<div>
+<a href="mailto:{{ footer.contact_email }}">
+{{ footer.contact_email }}
+</a>
+</div>
+{% endif %}
+
+{% if footer.phone %}
+<div>{{ footer.phone }}</div>
+{% endif %}
+
+{% if footer.address %}
+<div>{{ footer.address }}</div>
+{% endif %}
+
+</div>
+
+</div>
+
+{% if footer.linkedin
+or footer.twitter
+or footer.instagram
+or footer.facebook
+or footer.youtube
+or footer.github %}
+
+<div class="social-links">
+
+{% if footer.linkedin %}
+<a href="{{ footer.linkedin }}">LinkedIn</a>
+{% endif %}
+
+{% if footer.twitter %}
+<a href="{{ footer.twitter }}">Twitter</a>
+{% endif %}
+
+{% if footer.instagram %}
+<a href="{{ footer.instagram }}">Instagram</a>
+{% endif %}
+
+{% if footer.facebook %}
+<a href="{{ footer.facebook }}">Facebook</a>
+{% endif %}
+
+{% if footer.youtube %}
+<a href="{{ footer.youtube }}">YouTube</a>
+{% endif %}
+
+{% if footer.github %}
+<a href="{{ footer.github }}">GitHub</a>
+{% endif %}
+
+</div>
+
+{% endif %}
+
+<hr class="footer-divider">
+
+{% if footer.subscription_note %}
+<div class="subscription">
+{{ footer.subscription_note }}
+</div>
+{% endif %}
+
+<div class="footer-bottom">
+
+<div>
+{% if footer.copyright %}
+{{ footer.copyright }}
+{% else %}
+© {{ company_name }}
+{% endif %}
+</div>
+
+<div>
+
+{% if footer.privacy %}
+{{ footer.privacy }}
+{% endif %}
+
+{% if footer.terms %}
+&nbsp;•&nbsp;{{ footer.terms }}
+{% endif %}
+
+{% if footer.unsubscribe %}
+&nbsp;•&nbsp;{{ footer.unsubscribe }}
+{% endif %}
+
+</div>
+
+</div>
+
+</footer>
+
+</div>
+
+</body>
+</html>

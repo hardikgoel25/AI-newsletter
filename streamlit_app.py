@@ -13,6 +13,7 @@ from src.prompts import NEWSLETTER_JSON_PROMPT
 from src.parser import parse_llm_response
 from src.renderer import render_newsletter, save_html
 from src.embed_assets import embed_images
+from themes.avl import AVL_THEME
 
 BASE_DIR = Path(__file__).resolve().parent
 GENERATED_DIR = BASE_DIR / "generated"
@@ -28,6 +29,14 @@ st.title("📰 AI Newsletter Generator")
 st.caption("Generate beautiful AI-powered corporate newsletters.")
 
 st.sidebar.title("⚙️ Settings")
+
+brand = st.sidebar.selectbox(
+    "Brand",
+    [
+        "Generic",
+        "AVL"
+    ]
+)
 
 use_custom_logo = st.sidebar.checkbox("Upload Custom Logo")
 logo_path = None
@@ -106,6 +115,11 @@ reading_time = st.sidebar.selectbox(
     ]
 )
 
+publication_date = st.sidebar.text_input(
+    "Publication Date",
+    value="August 2026"
+)
+
 highlight_count = st.sidebar.slider(
     "Highlights",
     2,
@@ -120,24 +134,43 @@ section_count = st.sidebar.slider(
     4
 )
 
+if brand == "AVL":
+    defaults = AVL_THEME
+else:
+    defaults = {}
+
+company_name_default = defaults.get("company_name", "")
+website_default = defaults.get("website", "")
+contact_email_default = defaults.get("contact_email", "")
+phone_default = defaults.get("phone", "")
+address_default = defaults.get("address", "")
+tagline_default = defaults.get("tagline", "")
+
+linkedin_default = defaults.get("linkedin", "")
+twitter_default = defaults.get("twitter", "")
+instagram_default = defaults.get("instagram", "")
+facebook_default = defaults.get("facebook", "")
+youtube_default = defaults.get("youtube", "")
+github_default = defaults.get("github", "")
+
 st.subheader("🏢 Company Information (Optional)")
 c1,c2 = st.columns(2)
 with c1:
-    company_name = st.text_input("Company Name")
-    website = st.text_input("Website")
-    contact_email = st.text_input("Email")
-    phone = st.text_input("Phone")
-    address = st.text_area("Address", height=100)
-    tagline = st.text_input("Company Tagline")
+    company_name = st.text_input("Company Name", value=company_name_default)
+    website = st.text_input("Website", value=website_default)
+    contact_email = st.text_input("Email", value=contact_email_default)
+    phone = st.text_input("Phone", value=phone_default)
+    address = st.text_area("Address", height=100, value=address_default)
+    tagline = st.text_input("Company Tagline", value=tagline_default)
 with c2:
 
-    linkedin = st.text_input("LinkedIn")
-    twitter = st.text_input("Twitter / X")
+    linkedin = st.text_input("LinkedIn", value=linkedin_default)
+    twitter = st.text_input("Twitter / X", value=twitter_default)
 
-    instagram = st.text_input("Instagram")
-    facebook = st.text_input("Facebook")
-    youtube = st.text_input("YouTube")
-    github = st.text_input("GitHub")
+    instagram = st.text_input("Instagram", value=instagram_default)
+    facebook = st.text_input("Facebook", value=facebook_default)
+    youtube = st.text_input("YouTube", value=youtube_default)
+    github = st.text_input("GitHub", value=github_default)
 
 
 st.subheader("✍ Content Overrides")
@@ -176,6 +209,8 @@ if st.button("🚀 Generate Newsletter", use_container_width=True):
 
         company_info = f"""
 Company Name: {company_name}
+
+Publication Date: {publication_date}
 
 Website: {website}
 
@@ -220,6 +255,7 @@ Company Updates:
 
         status.write("📄 Validating JSON...")
         data = parse_llm_response(raw_response)
+        data["brand"] = brand.lower()
         # Theme
         data["theme"] = theme.lower()
         if reading_time != "Auto":

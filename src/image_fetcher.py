@@ -7,8 +7,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 GENERATED_DIR = BASE_DIR / "generated"
 GENERATED_DIR.mkdir(parents=True, exist_ok=True)
 
-BANNER_PATH = GENERATED_DIR / "banner.jpg"
-
 UNSPLASH_URL = "https://api.unsplash.com/photos/random"
 
 HEADERS = {
@@ -16,16 +14,17 @@ HEADERS = {
 }
 
 
-def _download(query: str):
+def _download(query: str, output_path: Path):
     """Attempt to download a single image for a query."""
 
     response = requests.get(
         UNSPLASH_URL,
         headers=HEADERS,
         params={
-            "query": query,
-            "orientation": "landscape",
-        },
+    "query": query,
+    "orientation": "landscape",
+    "content_filter": "high",
+},
         timeout=15,
     )
 
@@ -43,46 +42,109 @@ def _download(query: str):
     image = requests.get(image_url, timeout=20)
     image.raise_for_status()
 
-    with open(BANNER_PATH, "wb") as f:
+    with open(output_path, "wb") as f:
         f.write(image.content)
 
-    print(f"[Unsplash] Saved banner -> {BANNER_PATH}")
+    print(f"[Unsplash] Saved banner -> {output_path}")
 
-    return str(BANNER_PATH)
+    return str(output_path)
 
 
-def download_image(keywords):
+def download_image(
+    company_name="",
+    keywords=None,
+    custom_query=None,
+    filename="banner.jpg",
+):
+    """
+    Download a banner image.
+
+    Priority:
+    1. Custom query
+    2. Company + keywords
+    3. Company only
+    4. Keywords
+    5. Generic fallbacks
+    """
+
+    if keywords is None:
+        keywords = []
+
     if isinstance(keywords, str):
         keywords = [keywords]
 
     keywords = [k.strip() for k in keywords if k.strip()]
 
+    output_path = GENERATED_DIR / filename
+
     search_queries = []
 
-    # 1. Original approach (highest relevance)
+    # -------------------------------------------------
+    # Build search queries (most specific → broadest)
+    # -------------------------------------------------
+
+    company_name = company_name.strip()
+
+    # 1. User override always wins
+    if custom_query:
+        search_queries.append(custom_query.strip())
+
+    # 2. Company-specific searches
+    if company_name:
+
+        search_queries.extend([
+    f"{company_name} engineering",
+    f"{company_name} technology",
+    f"{company_name} innovation",
+    f"{company_name} headquarters",
+    f"{company_name} campus",
+    f"{company_name} office",
+])
+
+        if len(keywords) >= 2:
+            search_queries.append(
+                f"{company_name} {keywords[0]} {keywords[1]}"
+            )
+
+        if keywords:
+            search_queries.append(
+                f"{company_name} {keywords[0]}"
+            )
+
+        search_queries.append(company_name)
+
+    # 3. Keyword combinations
     if keywords:
         search_queries.append(" ".join(keywords))
 
-    # 2. Slightly simplified
-    if len(keywords) >= 5:
-        search_queries.append(" ".join(keywords[:5]))
-
-    # 3. Top 3 keywords
     if len(keywords) >= 3:
         search_queries.append(" ".join(keywords[:3]))
 
-    # 4. Top 2 keywords
     if len(keywords) >= 2:
         search_queries.append(" ".join(keywords[:2]))
 
-    # 5. Individual keywords
+    # 4. Individual keywords
     search_queries.extend(keywords)
+
+    # 5. AVL-specific fallbacks
+    if company_name.lower() == "avl":
+        search_queries.extend([
+            "AVL headquarters Austria",
+            "AVL engineering center",
+            "automotive testing laboratory",
+            "electric vehicle testing",
+            "vehicle engineering",
+            "automotive research",
+            "engineering laboratory",
+        ])
 
     # 6. Generic fallbacks
     search_queries.extend([
-        "business technology",
-        "corporate office",
-        "innovation",
+        "modern engineering office",
+        "automotive engineering",
+        "research laboratory",
+        "engineering workplace",
+        "corporate innovation",
     ])
 
     tried = set()
@@ -91,13 +153,18 @@ def download_image(keywords):
 
         query = query.strip()
 
-        if not query or query.lower() in tried:
+        if not query:
             continue
 
-        tried.add(query.lower())
+        key = query.lower()
+
+        if key in tried:
+            continue
+
+        tried.add(key)
 
         try:
-            result = _download(query)
+            result = _download(query, output_path)
 
             if result:
                 print(f"[Unsplash] Success using: {query}")

@@ -2,6 +2,7 @@ from pathlib import Path
 from jinja2 import Environment, FileSystemLoader, TemplateNotFound
 
 from src.image_fetcher import download_image
+from themes.avl import AVL_THEME
 
 # -----------------------------
 # Project Paths
@@ -36,13 +37,21 @@ def render_newsletter(newsletter_data):
     # -----------------------------
     # Theme
     # -----------------------------
+    brand = data.get("brand", "generic").lower()
     theme = data.get("theme", "dark").lower()
 
-    template_name = (
-        "newsletter_light.html"
-        if theme == "light"
-        else "newsletter_dark.html"
-    )
+    if brand == "avl":
+        template_name = (
+            "newsletter_avl_light.html"
+            if theme == "light"
+            else "newsletter_avl_dark.html"
+        )
+    else:
+        template_name = (
+            "newsletter_light.html"
+            if theme == "light"
+            else "newsletter_dark.html"
+        )
 
     try:
         template = env.get_template(template_name)
@@ -57,26 +66,75 @@ def render_newsletter(newsletter_data):
     if not isinstance(data.get("footer"), dict):
         data["footer"] = {}
 
+    # ---------------------------------
+    # Apply AVL defaults
+    # ---------------------------------
+
+    if brand == "avl":
+
+        # Company
+        data.setdefault("company_name", AVL_THEME["company_name"])
+
+        # Footer defaults
+        footer = data["footer"]
+
+        for key in [
+        "website",
+        "tagline",
+        "linkedin",
+        "youtube",
+        "facebook",
+        "instagram",
+        "twitter",
+        "github",
+        "contact_email",
+        "phone",
+        "address",
+        "subscription_note",
+        "privacy",
+        "terms",
+        "unsubscribe",
+        ]:
+            footer.setdefault(key, AVL_THEME[key])
+
+        # Colors
+        data["primary_gradient"] = AVL_THEME["primary_gradient"]
+        data["primary"] = AVL_THEME["primary"]
+        data["secondary"] = AVL_THEME["secondary"]
+        data["tertiary"] = AVL_THEME["tertiary"]
+        data["accent"] = AVL_THEME["accent"]
+    
     # -----------------------------
     # Logo
     # -----------------------------
-    default_logo = (
-        "../assets/logo.svg"
-        if (BASE_DIR / "assets/logo.svg").exists()
-        else "../assets/logo.png"
-    )
 
-    if data.get("custom_logo"):
-        for ext in [".svg", ".png", ".webp", ".jpg", ".jpeg"]:
-            logo = BASE_DIR / f"generated/logo{ext}"
+    if brand == "avl":
 
-            if logo.exists():
-                data["logo"] = f"../generated/logo{ext}"
-                break
+        data["logo"] = AVL_THEME["logo"]
+
+    else:
+
+        default_logo = (
+            "../assets/logo.svg"
+            if (BASE_DIR / "assets/logo.svg").exists()
+            else "../assets/logo.png"
+        )
+
+        if data.get("custom_logo"):
+
+            for ext in [".svg", ".png", ".webp", ".jpg", ".jpeg"]:
+
+                logo = BASE_DIR / f"generated/logo{ext}"
+
+                if logo.exists():
+                    data["logo"] = f"../generated/logo{ext}"
+                    break
+
+            else:
+                data["logo"] = default_logo
+
         else:
             data["logo"] = default_logo
-    else:
-        data["logo"] = default_logo
 
     # -----------------------------
     # Hero Image
@@ -91,7 +149,10 @@ def render_newsletter(newsletter_data):
             or data.get("image_keywords", [])
         )
 
-        banner = download_image(keywords)
+        banner = download_image(
+            company_name=data.get("company_name", ""),
+            keywords=keywords,
+        )
 
         if banner:
             data["hero_placeholder"] = "../generated/banner.jpg"

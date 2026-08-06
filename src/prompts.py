@@ -76,9 +76,17 @@ Innovation → 💡
 Sustainability → 🌱
 Partnership → 🤝
 
-Title:
-- Maximum 4 words
-- Action-oriented
+Hero Title
+
+Generate a news-specific headline.
+
+Do NOT reuse the company tagline.
+
+Do NOT simply repeat the company slogan.
+
+The hero title should summarize the biggest announcement or overall theme of this newsletter.
+
+Maximum 8 words.
 
 Subtitle:
 - Maximum 12 words

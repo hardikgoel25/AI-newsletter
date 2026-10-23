@@ -17,5 +17,6 @@ ignore = ["E501", "B008", "S101", "S311"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["."]
 asyncio_mode = "auto"
 filterwarnings = ["ignore::DeprecationWarning"]

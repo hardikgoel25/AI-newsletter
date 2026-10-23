@@ -17,6 +17,7 @@ export function ComposePanel() {
   const cancel = useStudio((s) => s.cancelGenerate);
   const sources = useStudio((s) => s.sources);
   const llm = useStudio((s) => s.llm);
+  const byok = useStudio((s) => s.byok);
   const healthError = useStudio((s) => s.healthError);
   const hasContent = sources.some((s) => s.text.trim());
   const generating = status === "generating";
@@ -56,7 +57,9 @@ export function ComposePanel() {
           </Button>
         )}
         <p className="mt-2 truncate text-center text-[11px] text-faint">
-          {healthError ? "API offline — check the backend URL." : llm.model ? `Model: ${llm.model}` : "Model: server default"}
+          {healthError
+            ? "API offline — check the backend URL."
+            : `Model: ${llm.model ?? (byok ? `${byok.provider} default` : "server default")}${byok ? " · your key" : ""}`}
         </p>
       </div>
     </aside>

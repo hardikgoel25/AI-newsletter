@@ -51,6 +51,9 @@ class Settings(BaseSettings):
     # Optional shared secret. When set, every /api route except /api/health requires
     # the `X-App-Key` header to match.
     app_access_key: str | None = None
+    # Allow visitors to use their own provider key (sent as X-LLM-Key). Such requests never
+    # touch the server's keys and bypass the access-key gate.
+    allow_byok: bool = True
     rate_limit_generate: str = "10/minute"
     rate_limit_default: str = "60/minute"
     max_json_body_bytes: int = 1_500_000  # 1.5 MB (data-URI logos are allowed)

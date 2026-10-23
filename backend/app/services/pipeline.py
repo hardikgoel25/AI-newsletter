@@ -7,6 +7,7 @@ import time
 
 from pydantic import ValidationError
 
+from app.auth import AuthContext
 from app.config import Settings
 from app.schemas import (
     GenerateRequest,
@@ -30,7 +31,13 @@ class PipelineError(RuntimeError):
         self.status = status
 
 
-async def generate(req: GenerateRequest, llm: LLMService, unsplash: UnsplashClient, settings: Settings) -> GenerateResponse:
+async def generate(
+    req: GenerateRequest,
+    llm: LLMService,
+    unsplash: UnsplashClient,
+    settings: Settings,
+    auth: AuthContext,
+) -> GenerateResponse:
     started = time.perf_counter()
     warnings: list[str] = []
 
@@ -38,9 +45,10 @@ async def generate(req: GenerateRequest, llm: LLMService, unsplash: UnsplashClie
     result = await llm.complete_json(
         system,
         user,
-        provider=req.llm.provider,
+        provider=auth.provider_for(req.llm.provider),
         model=req.llm.model,
         temperature=req.llm.temperature,
+        api_key=auth.llm_key,
     )
     usage = dict(result.usage)
     if result.attempts > 1:
@@ -57,7 +65,7 @@ async def generate(req: GenerateRequest, llm: LLMService, unsplash: UnsplashClie
         r_system, r_user = prompts.build_repair_messages(result.content, errors, req.options)
         try:
             repair = await llm.complete_json(
-                r_system, r_user, provider=result.provider, model=result.model, temperature=0.0
+                r_system, r_user, provider=result.provider, model=result.model, temperature=0.0, api_key=auth.llm_key
             )
             for k, v in repair.usage.items():
                 usage[k] = usage.get(k, 0) + v
@@ -93,13 +101,18 @@ async def generate(req: GenerateRequest, llm: LLMService, unsplash: UnsplashClie
     )
 
 
-async def regenerate_section(req: RegenerateSectionRequest, llm: LLMService) -> RegenerateSectionResponse:
+async def regenerate_section(req: RegenerateSectionRequest, llm: LLMService, auth: AuthContext) -> RegenerateSectionResponse:
     if req.section_index >= len(req.newsletter.sections):
         raise PipelineError("Section index out of range.", status=400)
     section = req.newsletter.sections[req.section_index]
     system, user = prompts.build_section_messages(req.newsletter, section, req.instruction, req.tone, req.language)
     result = await llm.complete_json(
-        system, user, provider=req.llm.provider, model=req.llm.model, temperature=max(0.2, req.llm.temperature)
+        system,
+        user,
+        provider=auth.provider_for(req.llm.provider),
+        model=req.llm.model,
+        temperature=max(0.2, req.llm.temperature),
+        api_key=auth.llm_key,
     )
     try:
         data = extract_json(result.content)

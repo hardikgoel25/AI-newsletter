@@ -113,7 +113,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         allow_origins=settings.cors_origin_list,
         allow_credentials=False,
         allow_methods=["GET", "POST", "OPTIONS"],
-        allow_headers=["Content-Type", "X-App-Key"],
+        allow_headers=["Content-Type", "X-App-Key", "X-LLM-Key", "X-LLM-Provider"],
         expose_headers=["X-Request-Id", "X-Filename", "Content-Disposition"],
         max_age=600,
     )

@@ -28,6 +28,7 @@ async def health(
         providers=llm.available_providers(),
         unsplash=unsplash.enabled,
         access_key_required=bool(settings.app_access_key),
+        byok_allowed=settings.allow_byok,
     )
 
 

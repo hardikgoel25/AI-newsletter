@@ -643,3 +643,4 @@ class HealthResponse(StrictModel):
     providers: list[str]
     unsplash: bool
     access_key_required: bool
+    byok_allowed: bool = True

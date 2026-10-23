@@ -6,12 +6,13 @@ from typing import Literal
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, UploadFile
 
+from app.auth import get_auth
 from app.config import Settings, get_settings
-from app.deps import limiter, require_access_key
+from app.deps import limiter
 from app.schemas import UploadImageResponse
 from app.services.sanitize import ImageError, SVGError, process_raster, sanitize_svg, sniff_is_svg, svg_data_uri
 
-router = APIRouter(prefix="/api", tags=["upload"], dependencies=[Depends(require_access_key)])
+router = APIRouter(prefix="/api", tags=["upload"], dependencies=[Depends(get_auth)])
 
 _ALLOWED_EXT = (".svg", ".png", ".jpg", ".jpeg", ".webp", ".gif")
 

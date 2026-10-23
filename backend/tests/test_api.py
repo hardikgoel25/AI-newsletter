@@ -175,11 +175,65 @@ def test_access_key_gate(monkeypatch, settings):
     monkeypatch.setattr(settings, "app_access_key", "secret")
     with TestClient(create_app(settings)) as c:
         assert c.get("/api/health").status_code == 200
+        assert c.get("/api/health").json()["access_key_required"] is True
         assert c.get("/api/templates").status_code == 200  # meta routes stay open
         r = c.post("/api/render", json={"newsletter": {}})
         assert r.status_code == 401
+        r = c.post("/api/render", json={"newsletter": {}}, headers={"X-App-Key": "wrong"})
+        assert r.status_code == 401
         r = c.post("/api/render", json={"newsletter": {"sections": [{"title": "a", "content": "b"}]}}, headers={"X-App-Key": "secret"})
         assert r.status_code == 200
+        # A personal provider key also opens the door (BYOK).
+        r = c.post("/api/render", json={"newsletter": {"sections": [{"title": "a", "content": "b"}]}}, headers={"X-LLM-Key": "gsk_user"})
+        assert r.status_code == 200
+
+
+def test_byok_uses_visitor_key_never_server_key(monkeypatch, settings):
+    from fastapi.testclient import TestClient
+
+    from app.main import create_app
+
+    seen = []
+
+    async def complete_json(self, system, user, **kw):
+        seen.append(kw)
+        return LLMResult(content=json.dumps(MODEL_JSON), provider=kw.get("provider") or "groq", model="fake")
+
+    monkeypatch.setattr("app.services.llm.LLMService.complete_json", complete_json)
+    monkeypatch.setattr(settings, "app_access_key", "secret")
+    payload = {"sources": [{"text": "update"}], "auto_hero": "none", "llm": {"provider": "openai", "model": "gpt-5-mini"}}
+    with TestClient(create_app(settings)) as c:
+        # No credentials at all -> refused before any model call.
+        assert c.post("/api/generate", json=payload).status_code == 401
+        assert seen == []
+
+        # Visitor key: pinned to the visitor's provider, server key never used.
+        r = c.post("/api/generate", json=payload, headers={"X-LLM-Key": "gsk_visitor", "X-LLM-Provider": "groq"})
+        assert r.status_code == 200, r.text
+        assert seen[-1]["api_key"] == "gsk_visitor"
+        assert seen[-1]["provider"] == "groq"  # body said openai; the key decides
+
+        # Access key: server keys, provider as requested.
+        r = c.post("/api/generate", json=payload, headers={"X-App-Key": "secret"})
+        assert r.status_code == 200, r.text
+        assert seen[-1]["api_key"] is None
+        assert seen[-1]["provider"] == "openai"
+
+        # Bad provider / malformed key are rejected.
+        assert c.post("/api/generate", json=payload, headers={"X-LLM-Key": "k", "X-LLM-Provider": "ollama"}).status_code == 400
+        assert c.post("/api/generate", json=payload, headers={"X-LLM-Key": "has space"}).status_code == 400
+
+        # BYOK can be switched off.
+        monkeypatch.setattr(settings, "allow_byok", False)
+        assert c.post("/api/generate", json=payload, headers={"X-LLM-Key": "gsk_visitor"}).status_code == 403
+
+
+def test_models_list_marks_availability(client):
+    models = client.get("/api/models").json()
+    providers = {m["provider"] for m in models}
+    assert {"groq", "openai", "gemini"} <= providers
+    assert all(m["available"] for m in models if m["provider"] == "groq")
+    assert not any(m["available"] for m in models if m["provider"] == "openai")
 
 
 def test_body_size_limit(client, settings):

@@ -1,5 +1,6 @@
 import type {
   BrandKit,
+  Byok,
   ExportFormat,
   ExtractResponse,
   FetchFeedResponse,
@@ -21,7 +22,11 @@ import type {
 
 export const API_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000").replace(/\/+$/, "");
 
-const ACCESS_KEY_STORAGE = "ains.accessKey";
+/**
+ * Credentials attached to every request. Kept outside React state so the fetch layer can
+ * read them synchronously; the store mirrors its persisted values into here (see store.ts).
+ */
+export const session: { accessKey: string; byok: Byok | null } = { accessKey: "", byok: null };
 
 export class ApiError extends Error {
   status: number;
@@ -32,23 +37,6 @@ export class ApiError extends Error {
     this.status = status;
     this.errors = extra?.errors;
     this.requestId = extra?.requestId;
-  }
-}
-
-export function getAccessKey(): string {
-  try {
-    return localStorage.getItem(ACCESS_KEY_STORAGE) || "";
-  } catch {
-    return "";
-  }
-}
-
-export function setAccessKey(value: string) {
-  try {
-    if (value) localStorage.setItem(ACCESS_KEY_STORAGE, value);
-    else localStorage.removeItem(ACCESS_KEY_STORAGE);
-  } catch {
-    /* ignore */
   }
 }
 
@@ -72,8 +60,11 @@ async function raw(path: string, opts: RequestOptions = {}): Promise<Response> {
   if (opts.signal) opts.signal.addEventListener("abort", () => controller.abort(opts.signal?.reason), { once: true });
 
   const headers: Record<string, string> = {};
-  const key = getAccessKey();
-  if (key) headers["X-App-Key"] = key;
+  if (session.accessKey) headers["X-App-Key"] = session.accessKey;
+  if (session.byok?.key) {
+    headers["X-LLM-Key"] = session.byok.key;
+    headers["X-LLM-Provider"] = session.byok.provider;
+  }
   let body: BodyInit | undefined;
   if (opts.form) {
     body = opts.form;
@@ -112,7 +103,7 @@ async function raw(path: string, opts: RequestOptions = {}): Promise<Response> {
     } catch {
       /* non-JSON error */
     }
-    if (res.status === 401) detail = "This server requires an access key. Add it under Settings → Access key.";
+    if (res.status === 401) detail = "This server needs an access key, or your own provider API key. Open the key icon in the header to add one.";
     if (res.status === 429) detail = "Too many requests. Please wait a moment and try again.";
     throw new ApiError(detail, res.status, { errors, requestId: res.headers.get("x-request-id") ?? undefined });
   }

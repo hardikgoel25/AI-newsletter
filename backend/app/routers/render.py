@@ -4,11 +4,11 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, Response
 
-from app.deps import require_access_key
+from app.auth import get_auth
 from app.schemas import ExportRequest, RenderRequest, RenderResponse
 from app.services import renderer
 
-router = APIRouter(prefix="/api", tags=["render"], dependencies=[Depends(require_access_key)])
+router = APIRouter(prefix="/api", tags=["render"], dependencies=[Depends(get_auth)])
 
 
 @router.post("/render", response_model=RenderResponse)

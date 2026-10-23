@@ -229,7 +229,22 @@ export interface HealthResponse {
   providers: Provider[];
   unsplash: boolean;
   access_key_required: boolean;
+  byok_allowed: boolean;
 }
+
+export type ByokProvider = "groq" | "openai" | "gemini";
+
+/** A visitor's own provider key. Sent per request, never stored on the server. */
+export interface Byok {
+  provider: ByokProvider;
+  key: string;
+}
+
+export const BYOK_PROVIDERS: { id: ByokProvider; label: string; keysUrl: string; prefix: string }[] = [
+  { id: "groq", label: "Groq", keysUrl: "https://console.groq.com/keys", prefix: "gsk_" },
+  { id: "openai", label: "OpenAI", keysUrl: "https://platform.openai.com/api-keys", prefix: "sk-" },
+  { id: "gemini", label: "Google Gemini", keysUrl: "https://aistudio.google.com/app/apikey", prefix: "AIza" },
+];
 
 export interface UploadImageResponse {
   data_uri: string;

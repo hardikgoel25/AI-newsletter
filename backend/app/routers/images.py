@@ -5,13 +5,14 @@ from __future__ import annotations
 import httpx
 from fastapi import APIRouter, Depends, HTTPException, Request
 
+from app.auth import get_auth
 from app.config import get_settings
-from app.deps import get_unsplash, limiter, require_access_key
+from app.deps import get_unsplash, limiter
 from app.schemas import BrandKit, HeroImage, ImageSearchRequest, ImageSearchResult, ImageSelectRequest, RenderOptions
 from app.services.images import UnsplashClient, generated_banner
 from app.services.sanitize import ImageError
 
-router = APIRouter(prefix="/api/images", tags=["images"], dependencies=[Depends(require_access_key)])
+router = APIRouter(prefix="/api/images", tags=["images"], dependencies=[Depends(get_auth)])
 
 
 @router.post("/search", response_model=list[ImageSearchResult])

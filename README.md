@@ -76,7 +76,8 @@ Backend ([`backend/.env.example`](backend/.env.example)):
 | `DEFAULT_PROVIDER`, `DEFAULT_MODEL`, `FALLBACK_MODELS` | Default `groq` / `openai/gpt-oss-120b` / `qwen/qwen3.8-27b,openai/gpt-oss-20b`. |
 | `UNSPLASH_ACCESS_KEY` | Enables stock photo search. Without it a generated banner is used. |
 | `CORS_ORIGINS` | Comma-separated browser origins allowed to call the API. |
-| `APP_ACCESS_KEY` | Optional shared secret; the UI sends it as `X-App-Key` (set it under the key icon). |
+| `APP_ACCESS_KEY` | Optional shared secret. When set, only people with the key can use the server's provider keys (entered under the key icon in the UI). |
+| `ALLOW_BYOK` | Default `true`. Lets visitors paste their own Groq/OpenAI/Gemini key (sent as `X-LLM-Key`, used only for that request, never stored). Such visitors bypass the access key and pay for their own usage. |
 | `RATE_LIMIT_GENERATE`, `RATE_LIMIT_DEFAULT` | Per-IP limits, default `10/minute` and `60/minute`. |
 | `ENVIRONMENT` | `production` hides `/docs` and disables the Ollama option. |
 

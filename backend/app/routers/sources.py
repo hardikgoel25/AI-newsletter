@@ -4,8 +4,9 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile
 
+from app.auth import get_auth
 from app.config import Settings, get_settings
-from app.deps import limiter, require_access_key
+from app.deps import limiter
 from app.schemas import (
     ExtractResponse,
     FeedItem,
@@ -17,7 +18,7 @@ from app.schemas import (
 from app.services import fetch
 from app.services.extract import ExtractError, extract_text
 
-router = APIRouter(prefix="/api", tags=["sources"], dependencies=[Depends(require_access_key)])
+router = APIRouter(prefix="/api", tags=["sources"], dependencies=[Depends(get_auth)])
 
 
 @router.post("/extract", response_model=ExtractResponse)

@@ -56,6 +56,11 @@ class LLMResult:
 _GROQ_EXCLUDE = ("whisper", "guard", "orpheus", "tts", "safeguard", "allam")
 
 CURATED_MODELS: dict[str, list[tuple[str, str]]] = {
+    "groq": [
+        ("openai/gpt-oss-120b", "GPT-OSS 120B"),
+        ("openai/gpt-oss-20b", "GPT-OSS 20B"),
+        ("qwen/qwen3.8-27b", "Qwen3.8 27B"),
+    ],
     "openai": [
         ("gpt-5-mini", "GPT-5 mini"),
         ("gpt-5", "GPT-5"),
@@ -104,14 +109,24 @@ class LLMService:
             out.append("ollama")
         return out
 
-    def _client(self, provider: str) -> AsyncOpenAI:
+    def _client(self, provider: str, api_key: str | None = None) -> AsyncOpenAI:
+        """Server-keyed clients are cached; a caller-supplied key gets a throwaway client."""
+        base_url, server_key = self.provider_config(provider)
+        if api_key:
+            if provider == "ollama":
+                raise LLMError("Personal keys cannot be used with local models.", status=400, provider=provider)
+            return AsyncOpenAI(
+                api_key=api_key,
+                base_url=base_url,
+                timeout=httpx.Timeout(self.settings.llm_timeout_seconds, connect=10.0),
+                max_retries=0,
+            )
         if provider in self._clients:
             return self._clients[provider]
-        base_url, key = self.provider_config(provider)
-        if not key:
+        if not server_key:
             raise LLMError(f"Provider '{provider}' is not configured on the server.", status=503, provider=provider)
         client = AsyncOpenAI(
-            api_key=key,
+            api_key=server_key,
             base_url=base_url,
             timeout=httpx.Timeout(self.settings.llm_timeout_seconds, connect=10.0),
             max_retries=0,  # we handle retries ourselves
@@ -120,32 +135,32 @@ class LLMService:
         return client
 
     async def list_models(self) -> list[ModelInfo]:
+        """Every known model. `available` tells whether the server has a key for its provider;
+        the others can still be used by visitors who bring their own key."""
         models: list[ModelInfo] = []
         s = self.settings
-        for provider in self.available_providers():
-            if provider == "groq":
-                ids = await self._groq_model_ids()
-                for mid in ids:
-                    models.append(
-                        ModelInfo(
-                            provider="groq",
-                            id=mid,
-                            label=mid.split("/")[-1],
-                            default=(provider == s.default_provider and mid == s.default_model),
-                        )
-                    )
+        configured = set(self.available_providers())
+        providers = ["groq", "openai", "gemini"] + ([] if s.is_production else ["ollama"])
+        for provider in providers:
+            available = provider in configured
+            if provider == "groq" and available:
+                entries = [(mid, mid.split("/")[-1]) for mid in await self._groq_model_ids()]
             else:
-                for mid, label in CURATED_MODELS.get(provider, []):
-                    models.append(
-                        ModelInfo(
-                            provider=provider,
-                            id=mid,
-                            label=label,
-                            default=(provider == s.default_provider and mid == s.default_model),
-                        )
+                entries = CURATED_MODELS.get(provider, [])
+            for mid, label in entries:
+                models.append(
+                    ModelInfo(
+                        provider=provider,
+                        id=mid,
+                        label=label,
+                        default=(provider == s.default_provider and mid == s.default_model),
+                        available=available,
                     )
-        if not any(m.default for m in models) and models:
-            models[0].default = True
+                )
+        if not any(m.default for m in models):
+            first = next((m for m in models if m.available), None)
+            if first:
+                first.default = True
         return models
 
     async def _groq_model_ids(self) -> list[str]:
@@ -190,14 +205,19 @@ class LLMService:
         model: str | None = None,
         temperature: float = 0.3,
         max_tokens: int | None = None,
+        api_key: str | None = None,
     ) -> LLMResult:
-        """Ask for a JSON object. Retries transient errors and walks the fallback chain."""
+        """Ask for a JSON object. Retries transient errors and walks the fallback chain.
+
+        `api_key` is a caller-supplied provider key (BYOK); when given, the server's own key
+        for that provider is never used.
+        """
         provider = provider or self.settings.default_provider
         candidates = self._candidate_models(provider, model)
         if not candidates:
             raise LLMError(f"No model configured for provider '{provider}'.", status=400, provider=provider)
 
-        client = self._client(provider)
+        client = self._client(provider, api_key)
         started = time.perf_counter()
         attempts = 0
         last_error: Exception | None = None

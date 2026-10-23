@@ -21,6 +21,8 @@ export function SettingsTab() {
   const brand = useStudio((s) => s.brand);
   const render = useStudio((s) => s.render);
   const unsplash = useStudio((s) => Boolean(s.health?.unsplash));
+  const byok = useStudio((s) => s.byok);
+  const usableModels = models.filter((m) => (byok ? m.provider === byok.provider : m.available));
 
   return (
     <div className="space-y-4">
@@ -146,16 +148,16 @@ export function SettingsTab() {
 
       <Divider />
       <SectionTitle>Model</SectionTitle>
-      <Field label="Model">
+      <Field label="Model" hint={byok ? `using your ${byok.provider} key` : undefined}>
         <Select
           value={llm.model ?? ""}
           onChange={(e) => {
             const m = models.find((x) => x.id === e.target.value);
-            setLLM({ model: e.target.value || null, provider: m?.provider ?? null });
+            setLLM({ model: e.target.value || null, provider: m?.provider ?? (byok ? byok.provider : null) });
           }}
         >
-          <option value="">Server default</option>
-          {models.map((m) => (
+          <option value="">{byok ? `${byok.provider} default` : "Server default"}</option>
+          {usableModels.map((m) => (
             <option key={`${m.provider}:${m.id}`} value={m.id}>
               {m.provider} · {m.label}
             </option>

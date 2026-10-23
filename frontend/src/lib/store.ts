@@ -3,12 +3,13 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
-import { api, ApiError } from "./api";
+import { api, ApiError, session } from "./api";
 import {
   DEFAULT_BRAND,
   DEFAULT_OPTIONS,
   type AutoHero,
   type BrandKit,
+  type Byok,
   type GenerateOptions,
   type HealthResponse,
   type HeroImage,
@@ -72,6 +73,8 @@ interface StudioState {
   // ---- user data ----
   savedBrands: BrandKit[];
   history: HistoryEntry[];
+  accessKey: string; // shared secret for a private deployment
+  byok: Byok | null; // the visitor's own provider key
 
   // ---- ui ----
   activePane: Pane;
@@ -105,6 +108,7 @@ interface StudioState {
 
   saveBrand: (name: string) => void;
   deleteSavedBrand: (id: string) => void;
+  setCredentials: (accessKey: string, byok: Byok | null) => void;
   restoreHistory: (id: string) => void;
   deleteHistory: (id: string) => void;
   clearHistory: () => void;
@@ -196,6 +200,8 @@ export const useStudio = create<StudioState>()(
 
       savedBrands: [],
       history: [],
+      accessKey: "",
+      byok: null,
 
       activePane: "compose",
       composeTab: "content",
@@ -246,7 +252,8 @@ export const useStudio = create<StudioState>()(
         });
         const st = get();
         if (!st.llm.model && models.status === "fulfilled") {
-          const def = models.value.find((m) => m.default) ?? models.value[0];
+          const usable = models.value.filter((m) => (st.byok ? m.provider === st.byok.provider : m.available));
+          const def = usable.find((m) => m.default) ?? usable[0];
           if (def) set({ llm: { ...st.llm, provider: def.provider, model: def.id } });
         }
       },
@@ -271,7 +278,7 @@ export const useStudio = create<StudioState>()(
               options: st.options,
               brand: st.brand,
               render: st.render,
-              llm: st.llm,
+              llm: { ...st.llm, provider: st.byok ? st.byok.provider : st.llm.provider },
               hero_image: st.customHero,
               auto_hero: st.autoHero,
             },
@@ -346,7 +353,7 @@ export const useStudio = create<StudioState>()(
             instruction,
             tone: st.options.tone,
             language: st.options.language,
-            llm: st.llm,
+            llm: { ...st.llm, provider: st.byok ? st.byok.provider : st.llm.provider },
           });
           get().updateNewsletter((n) => ({
             ...n,
@@ -367,6 +374,14 @@ export const useStudio = create<StudioState>()(
           return { savedBrands: [kit, ...st.savedBrands.filter((b) => b.name !== kit.name)].slice(0, 20), brand: kit };
         }),
       deleteSavedBrand: (id) => set((st) => ({ savedBrands: st.savedBrands.filter((b) => b.id !== id) })),
+      setCredentials: (accessKey, byok) =>
+        set((st) => {
+          const next: Partial<StudioState> = { accessKey: accessKey.trim(), byok: byok?.key.trim() ? { provider: byok.provider, key: byok.key.trim() } : null };
+          // A personal key pins the provider; clear a model that belongs to another provider.
+          if (next.byok && st.llm.provider !== next.byok.provider) next.llm = { ...st.llm, provider: next.byok.provider, model: null };
+          if (!next.byok && st.byok) next.llm = { ...st.llm, provider: null, model: null };
+          return next;
+        }),
       restoreHistory: (id) => {
         const entry = get().history.find((h) => h.id === id);
         if (!entry) return;
@@ -417,6 +432,8 @@ export const useStudio = create<StudioState>()(
         newsletter: st.newsletter,
         savedBrands: st.savedBrands,
         history: st.history,
+        accessKey: st.accessKey,
+        byok: st.byok,
         composeTab: st.composeTab,
         appTheme: st.appTheme,
         previewWidth: st.previewWidth,
@@ -427,5 +444,11 @@ export const useStudio = create<StudioState>()(
     },
   ),
 );
+
+// Mirror credentials into the fetch layer whenever they change (including after rehydration).
+useStudio.subscribe((st) => {
+  session.accessKey = st.accessKey;
+  session.byok = st.byok;
+});
 
 export const selectHasResult = (s: StudioState) => Boolean(s.newsletter);

@@ -19,6 +19,8 @@ services:
         sync: false
       - key: APP_ACCESS_KEY
         sync: false
+      - key: ALLOW_BYOK
+        value: "true"
       - key: CORS_ORIGINS
         value: https://YOUR-FRONTEND.vercel.app
       - key: DEFAULT_MODEL

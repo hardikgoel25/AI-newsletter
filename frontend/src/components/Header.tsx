@@ -3,12 +3,12 @@
 import { KeyRound, LayoutTemplate, Moon, Newspaper, PanelRight, RotateCcwClock, Sun, Trash, X } from "lucide-react";
 import { useState } from "react";
 
-import { getAccessKey, setAccessKey } from "@/lib/api";
 import { useStudio } from "@/lib/store";
+import { BYOK_PROVIDERS, type ByokProvider } from "@/lib/types";
 import { cn, formatRelative } from "@/lib/utils";
 
 import { ExportMenu } from "./ExportMenu";
-import { Badge, Button, Input, MenuItem, Popover, Select } from "./ui";
+import { Badge, Button, Input, Popover, Select } from "./ui";
 
 export function Header() {
   const templates = useStudio((s) => s.templates);
@@ -22,6 +22,7 @@ export function Header() {
   const editorOpen = useStudio((s) => s.editorOpen);
   const setEditorOpen = useStudio((s) => s.setEditorOpen);
   const setPane = useStudio((s) => s.setPane);
+  const byok = useStudio((s) => s.byok);
 
   const isDark = typeof document !== "undefined" && document.documentElement.classList.contains("dark");
 
@@ -62,8 +63,13 @@ export function Header() {
       </div>
 
       <div className="flex items-center gap-1.5">
+        {byok ? (
+          <Badge tone="accent" className="hidden md:inline-flex">
+            Your {BYOK_PROVIDERS.find((p) => p.id === byok.provider)?.label ?? byok.provider} key
+          </Badge>
+        ) : null}
         <HistoryButton />
-        <SettingsButton accessKeyRequired={Boolean(health?.access_key_required)} />
+        <ConnectionButton />
         <Button
           size="icon"
           variant="ghost"
@@ -150,69 +156,118 @@ function HistoryButton() {
   );
 }
 
-function SettingsButton({ accessKeyRequired }: { accessKeyRequired: boolean }) {
+function ConnectionButton() {
   const [open, setOpen] = useState(false);
-  const [key, setKey] = useState("");
+  const health = useStudio((s) => s.health);
+  const accessKey = useStudio((s) => s.accessKey);
+  const byok = useStudio((s) => s.byok);
+  const setCredentials = useStudio((s) => s.setCredentials);
   const loadCatalogs = useStudio((s) => s.loadCatalogs);
   const toast = useStudio((s) => s.toast);
   const models = useStudio((s) => s.models);
   const llm = useStudio((s) => s.llm);
   const setLLM = useStudio((s) => s.setLLM);
 
+  const [draftKey, setDraftKey] = useState("");
+  const [draftProvider, setDraftProvider] = useState<ByokProvider>("groq");
+  const [draftByok, setDraftByok] = useState("");
+
+  const accessKeyRequired = Boolean(health?.access_key_required);
+  const byokAllowed = health?.byok_allowed ?? true;
+  const needsAttention = accessKeyRequired && !accessKey && !byok;
+  const providerMeta = BYOK_PROVIDERS.find((p) => p.id === draftProvider)!;
+
+  // Models the current credentials can actually use.
+  const usableModels = models.filter((m) => (byok ? m.provider === byok.provider : m.available));
+
+  function openPanel() {
+    setDraftKey(accessKey);
+    setDraftProvider(byok?.provider ?? "groq");
+    setDraftByok(byok?.key ?? "");
+    setOpen((v) => !v);
+  }
+
+  function save() {
+    setCredentials(draftKey, draftByok.trim() ? { provider: draftProvider, key: draftByok } : null);
+    setOpen(false);
+    toast(draftByok.trim() ? `Using your ${providerMeta.label} key for generation.` : "Connection settings saved.", "success");
+    void loadCatalogs();
+  }
+
   return (
     <div className="relative">
-      <Button
-        size="icon"
-        variant="ghost"
-        aria-label="Connection settings"
-        title="Connection settings"
-        onClick={() => {
-          setKey(getAccessKey());
-          setOpen((v) => !v);
-        }}
-      >
+      <Button size="icon" variant="ghost" aria-label="Connection settings" title="Connection settings" onClick={openPanel}>
         <KeyRound className="size-4" />
-        {accessKeyRequired && !getAccessKey() ? <span className="absolute right-1.5 top-1.5 size-1.5 rounded-full bg-danger" /> : null}
+        {needsAttention ? <span className="absolute right-1.5 top-1.5 size-1.5 rounded-full bg-danger" /> : null}
       </Button>
-      <Popover open={open} onClose={() => setOpen(false)} className="w-80 p-3">
-        <div className="flex items-center justify-between mb-2">
+      <Popover open={open} onClose={() => setOpen(false)} className="w-[22rem] p-3">
+        <div className="flex items-center justify-between mb-3">
           <span className="text-xs font-semibold text-muted">Connection</span>
           <button type="button" onClick={() => setOpen(false)} className="text-faint hover:text-text" aria-label="Close">
             <X className="size-4" />
           </button>
         </div>
-        <label className="text-xs text-muted">Model</label>
+
+        <section className="rounded-xl border border-border bg-surface-2 p-2.5">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold">Access key</span>
+            {accessKeyRequired ? <Badge tone={accessKey ? "success" : "danger"}>{accessKey ? "set" : "required"}</Badge> : <Badge>not needed</Badge>}
+          </div>
+          <Input className="mt-2" type="password" placeholder="Key from the site owner" value={draftKey} onChange={(e) => setDraftKey(e.target.value)} autoComplete="off" />
+          <p className="mt-1.5 text-[11px] text-faint">
+            {accessKeyRequired
+              ? "This site is private. Enter the key you were given to generate with the site's own AI account."
+              : "This site is open; no key needed."}
+          </p>
+        </section>
+
+        {byokAllowed ? (
+          <section className="mt-2 rounded-xl border border-border bg-surface-2 p-2.5">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold">Or use your own API key</span>
+              {byok ? <Badge tone="accent">active</Badge> : null}
+            </div>
+            <div className="mt-2 flex gap-2">
+              <Select className="w-32 shrink-0" value={draftProvider} onChange={(e) => setDraftProvider(e.target.value as ByokProvider)}>
+                {BYOK_PROVIDERS.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.label}
+                  </option>
+                ))}
+              </Select>
+              <Input type="password" placeholder={`${providerMeta.prefix}…`} value={draftByok} onChange={(e) => setDraftByok(e.target.value)} autoComplete="off" spellCheck={false} />
+            </div>
+            <p className="mt-1.5 text-[11px] text-faint">
+              Billed to your account, sent only with your requests, never stored on the server.{" "}
+              <a href={providerMeta.keysUrl} target="_blank" rel="noreferrer" className="text-accent hover:underline">
+                Get a {providerMeta.label} key
+              </a>
+              . Clear the field to stop using it.
+            </p>
+          </section>
+        ) : null}
+
+        <label className="mt-3 block text-xs font-semibold">Model</label>
         <Select
-          className="mt-1 mb-3"
+          className="mt-1"
           value={llm.model ?? ""}
           onChange={(e) => {
             const m = models.find((x) => x.id === e.target.value);
             setLLM({ model: e.target.value || null, provider: m?.provider ?? llm.provider });
           }}
         >
-          <option value="">Server default</option>
-          {models.map((m) => (
+          <option value="">{byok ? `${providerMeta.label} default` : "Server default"}</option>
+          {usableModels.map((m) => (
             <option key={`${m.provider}:${m.id}`} value={m.id}>
               {m.provider} · {m.label}
             </option>
           ))}
         </Select>
-        <label className="text-xs text-muted">
-          Access key {accessKeyRequired ? <Badge tone="danger">required</Badge> : <Badge>optional</Badge>}
-        </label>
-        <Input className="mt-1" type="password" placeholder="X-App-Key" value={key} onChange={(e) => setKey(e.target.value)} autoComplete="off" />
-        <p className="mt-1.5 text-[11px] text-faint">Only needed if the API was deployed with APP_ACCESS_KEY. Stored on this device.</p>
-        <div className="mt-3 flex justify-end gap-2">
-          <MenuItem
-            onClick={() => {
-              setAccessKey(key.trim());
-              setOpen(false);
-              toast("Connection settings saved.", "success");
-              void loadCatalogs();
-            }}
-          >
+
+        <div className="mt-3 flex justify-end">
+          <Button variant="primary" size="sm" onClick={save}>
             Save
-          </MenuItem>
+          </Button>
         </div>
       </Popover>
     </div>

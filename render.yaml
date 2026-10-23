@@ -21,8 +21,9 @@ services:
         sync: false
       - key: ALLOW_BYOK
         value: "true"
+      # Set this in the Render dashboard to your Vercel URL(s), comma-separated.
       - key: CORS_ORIGINS
-        value: https://YOUR-FRONTEND.vercel.app
+        sync: false
       - key: DEFAULT_MODEL
         value: openai/gpt-oss-120b
       - key: FALLBACK_MODELS

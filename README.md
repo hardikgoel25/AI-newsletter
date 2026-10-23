@@ -5,6 +5,14 @@ Paste text, drop in a document, or import a URL or RSS feed; pick a template and
 generate with an LLM; edit every block with a live preview; export as standalone HTML,
 email-safe HTML, Markdown, JSON, plain text or PDF.
 
+**Live app:** https://ai-newsletter-livid.vercel.app
+
+The site is private. Open the key icon in the header and either enter the access key you were
+given (generation then runs on the site's AI account), or paste your own Groq, OpenAI or Gemini
+key to generate on your own account. Personal keys are sent only with your requests and never
+stored. The API runs on Render's free tier at https://ai-newsletter-api-v175.onrender.com, so the
+first request after a quiet period can take up to a minute while it wakes up.
+
 > v2 is a complete rewrite of the original Streamlit prototype (kept under [`legacy/`](legacy/)).
 > The full design brief lives in [`docs/REVAMP_SPEC.md`](docs/REVAMP_SPEC.md).
 
@@ -55,7 +63,7 @@ Open http://localhost:3000, press **Load example**, then **Generate** (or `Ctrl/
 
 | Part | Where | How |
 |---|---|---|
-| Backend | [Render](https://render.com) (or Railway / Fly / HF Spaces / any Docker host) | "New → Blueprint" on this repo picks up [`render.yaml`](render.yaml). Set `GROQ_API_KEY`, `UNSPLASH_ACCESS_KEY` (optional), `APP_ACCESS_KEY` (optional) and `CORS_ORIGINS` to your Vercel URL. |
+| Backend | [Render](https://render.com) (or Railway / Fly / HF Spaces / any Docker host) | "New → Blueprint" on this repo picks up [`render.yaml`](render.yaml). It prompts for `GROQ_API_KEY`, `UNSPLASH_ACCESS_KEY` (optional) and `APP_ACCESS_KEY` (optional). After the frontend is up, add `CORS_ORIGINS` (plural) in the service's Environment tab with the exact Vercel URL, no trailing slash. |
 | Frontend | [Vercel](https://vercel.com) | Import the repo, set **Root Directory** to `frontend` (Next.js is auto-detected), add `NEXT_PUBLIC_API_URL=https://<your-render-service>.onrender.com`. Security headers come from `frontend/next.config.ts`. |
 
 Why not Streamlit Cloud? The original deployment failed because the dependency list pulled in

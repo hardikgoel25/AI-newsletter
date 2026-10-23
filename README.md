@@ -56,7 +56,7 @@ Open http://localhost:3000, press **Load example**, then **Generate** (or `Ctrl/
 | Part | Where | How |
 |---|---|---|
 | Backend | [Render](https://render.com) (or Railway / Fly / HF Spaces / any Docker host) | "New → Blueprint" on this repo picks up [`render.yaml`](render.yaml). Set `GROQ_API_KEY`, `UNSPLASH_ACCESS_KEY` (optional), `APP_ACCESS_KEY` (optional) and `CORS_ORIGINS` to your Vercel URL. |
-| Frontend | [Vercel](https://vercel.com) | Import the repo, set **Root Directory** to `frontend`, add `NEXT_PUBLIC_API_URL=https://<your-render-service>.onrender.com`. |
+| Frontend | [Vercel](https://vercel.com) | Import the repo, set **Root Directory** to `frontend` (Next.js is auto-detected), add `NEXT_PUBLIC_API_URL=https://<your-render-service>.onrender.com`. Security headers come from `frontend/next.config.ts`. |
 
 Why not Streamlit Cloud? The original deployment failed because the dependency list pulled in
 `weasyprint` (needs system Pango/Cairo) and `sentence-transformers` (PyTorch). Beyond that,
@@ -123,7 +123,7 @@ frontend/    Next.js app (src/app, src/components, src/lib)
 docs/        REVAMP_SPEC.md — the design brief / build prompt
 legacy/      the original Streamlit prototype, for reference
 render.yaml  one-click backend deploy on Render
-vercel.json  frontend deploy config
+frontend/next.config.ts  frontend build + security headers (deploy on Vercel with root dir = frontend)
 ```
 
 ## License

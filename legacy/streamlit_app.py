@@ -21,7 +21,7 @@ GENERATED_DIR.mkdir(exist_ok=True)
 
 client = LLMClient(
     provider="groq",
-    model="llama-3.3-70b-versatile"
+    model="qwen/qwen3.8-27b"
 )
 
 st.set_page_config(page_title="AI Newsletter Generator", page_icon="📰", layout="wide")

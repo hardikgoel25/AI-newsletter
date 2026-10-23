@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="{{ n.language_code }}">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="{{ theme }}">
+<meta name="x-apple-disable-message-reformatting">
+<title>{{ n.hero_title or n.newsletter_type }} &mdash; {{ n.company_name }}</title>
+{% if font_link %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="{{ font_link }}" rel="stylesheet">
+{% endif %}
+<style>
+{{ tokens_css }}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-height:1.7;-webkit-font-smoothing:antialiased}
+img{display:block;max-width:100%;height:auto}
+a{color:var(--primary-fg);text-decoration:none}
+a:hover{text-decoration:underline}
+h1,h2,h3,h4{font-family:var(--font-heading);line-height:1.15;letter-spacing:-.015em}
+.rich p{margin:0 0 .9em}
+.rich p:last-child{margin-bottom:0}
+.rich ul,.rich ol{margin:0 0 .9em 1.3em}
+.rich li{margin:.25em 0}
+.rich strong{color:var(--text)}
+.rich blockquote{border-left:3px solid var(--primary);padding:.2em 0 .2em 1em;color:var(--muted);margin:.8em 0}
+.rich code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.9em;background:var(--surface-2);padding:.1em .35em;border-radius:6px}
+.rich table{border-collapse:collapse;width:100%;margin:.8em 0;font-size:.95em}
+.rich th,.rich td{border:1px solid var(--border);padding:.45em .6em;text-align:left}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.credit{font-size:.75rem;color:var(--muted);margin-top:8px}
+.credit a{color:var(--muted);text-decoration:underline}
+{% block styles %}{% endblock %}
+@media print{
+  body{background:#fff;padding:0}
+  .wrapper{box-shadow:none;border-radius:0;max-width:100%}
+  a{text-decoration:none}
+}
+</style>
+</head>
+<body class="theme-{{ theme }} tpl-{{ template_id }}">
+<div class="wrapper">
+
+{% block header %}
+<header class="masthead">
+  <div class="brand">
+    {% if logo %}
+    <img class="logo" src="{{ logo }}" alt="{{ n.company_name }}" style="{{ logo_filter }}">
+    {% else %}
+    <div class="logo-fallback" aria-hidden="true">{{ n.company_name | initials }}</div>
+    {% endif %}
+    <div class="brand-text">
+      <div class="company">{{ n.company_name }}</div>
+      {% if brand.tagline %}<div class="tagline">{{ brand.tagline }}</div>{% endif %}
+    </div>
+  </div>
+  <div class="type">{{ n.newsletter_type }}</div>
+</header>
+{% endblock %}
+
+{% block hero %}
+<section class="hero">
+  <div class="meta">
+    {% if n.date %}<span>{{ n.date }}</span>{% endif %}
+    {% if n.date and n.estimated_read_time %}<span class="dot" aria-hidden="true"></span>{% endif %}
+    {% if n.estimated_read_time %}<span>{{ n.estimated_read_time }}</span>{% endif %}
+  </div>
+  <h1>{{ n.hero_title }}</h1>
+  {% if n.subtitle %}<p class="subtitle">{{ n.subtitle }}</p>{% endif %}
+  {% if hero %}
+  <figure class="hero-figure">
+    <img class="hero-img" src="{{ hero.src }}" alt="{{ hero.alt }}">
+    {% if hero.credit and hero.credit.name %}
+    <figcaption class="credit">Photo by <a href="{{ hero.credit.url }}">{{ hero.credit.name }}</a> on <a href="{{ hero.credit.source_url }}">{{ hero.credit.source }}</a></figcaption>
+    {% endif %}
+  </figure>
+  {% endif %}
+</section>
+{% endblock %}
+
+{% block highlights %}
+{% if n.highlights %}
+<section class="highlights" aria-label="Highlights">
+  {% for h in n.highlights %}
+  <div class="highlight">
+    <div class="icon" aria-hidden="true">{{ h.icon }}</div>
+    <h3>{{ h.title }}</h3>
+    {% if h.subtitle %}<p>{{ h.subtitle }}</p>{% endif %}
+  </div>
+  {% endfor %}
+</section>
+{% endif %}
+{% endblock %}
+
+{% block summary %}
+{% if n.summary %}
+<section class="summary">
+  <div class="label">Executive Summary</div>
+  <p>{{ n.summary }}</p>
+</section>
+{% endif %}
+{% endblock %}
+
+{% block stats %}
+{% if n.stats %}
+<section class="stats" aria-label="Key numbers">
+  {% for s in n.stats %}
+  <div class="stat">
+    <div class="stat-value">{{ s.value }}</div>
+    <div class="stat-label">{{ s.label }}</div>
+  </div>
+  {% endfor %}
+</section>
+{% endif %}
+{% endblock %}
+
+{% block sections %}
+<section class="sections">
+  {% for s in n.sections %}
+  <article class="section" id="s-{{ s.id }}">
+    <h2><span class="section-icon" aria-hidden="true">{{ s.icon }}</span><span class="section-title">{{ s.title }}</span></h2>
+    <div class="rich">{{ s.content | md }}</div>
+  </article>
+  {% endfor %}
+</section>
+{% endblock %}
+
+{% block quote %}
+{% if n.quote and n.quote.text %}
+<section class="quote">
+  <blockquote>
+    <p>&ldquo;{{ n.quote.text }}&rdquo;</p>
+    {% if n.quote.attribution %}<cite>&mdash; {{ n.quote.attribution }}</cite>{% endif %}
+  </blockquote>
+</section>
+{% endif %}
+{% endblock %}
+
+{% block cta %}
+{% if n.cta and n.cta.label %}
+<section class="cta">
+  {% if n.cta.url %}
+  <a class="cta-button" href="{{ n.cta.url }}">{{ n.cta.label }}</a>
+  {% else %}
+  <span class="cta-button">{{ n.cta.label }}</span>
+  {% endif %}
+</section>
+{% endif %}
+{% endblock %}
+
+{% block footer %}
+<footer>
+  <div class="footer-top">
+    <div class="footer-brand">
+      <div class="company">{{ n.company_name }}</div>
+      {% if n.footer.tagline %}<div class="tagline">{{ n.footer.tagline }}</div>{% endif %}
+    </div>
+    <div class="footer-contact">
+      {% if n.footer.website %}<div><a href="{{ n.footer.website }}">{{ n.footer.website | replace("https://", "") | replace("http://", "") }}</a></div>{% endif %}
+      {% if n.footer.contact_email %}<div><a href="mailto:{{ n.footer.contact_email }}">{{ n.footer.contact_email }}</a></div>{% endif %}
+      {% if n.footer.phone %}<div>{{ n.footer.phone }}</div>{% endif %}
+      {% if n.footer.address %}<div>{{ n.footer.address }}</div>{% endif %}
+    </div>
+  </div>
+  {% if socials %}
+  <div class="social-links">
+    {% for label, url in socials %}<a href="{{ url }}">{{ label }}</a>{% endfor %}
+  </div>
+  {% endif %}
+  <hr class="footer-divider">
+  {% if n.footer.subscription_note %}<div class="subscription">{{ n.footer.subscription_note }}</div>{% endif %}
+  <div class="footer-bottom">
+    {% if n.footer.copyright %}<span>{{ n.footer.copyright }}</span>{% endif %}
+    <span class="legal">
+      {% if n.footer.privacy_url %}<a href="{{ n.footer.privacy_url }}">Privacy</a>{% else %}<span>Privacy</span>{% endif %}
+      <span aria-hidden="true">&middot;</span>
+      {% if n.footer.terms_url %}<a href="{{ n.footer.terms_url }}">Terms</a>{% else %}<span>Terms</span>{% endif %}
+      <span aria-hidden="true">&middot;</span>
+      {% if n.footer.unsubscribe_url %}<a href="{{ n.footer.unsubscribe_url }}">Unsubscribe</a>{% else %}<span>Unsubscribe</span>{% endif %}
+    </span>
+  </div>
+</footer>
+{% endblock %}
+
+</div>
+</body>
+</html>

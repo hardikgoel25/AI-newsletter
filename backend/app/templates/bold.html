@@ -1,0 +1,115 @@
+{% extends "_base.html" %}
+{% block styles %}
+body{padding:40px 20px}
+.wrapper{max-width:960px;margin:0 auto;background:var(--surface);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);border:1px solid var(--border)}
+
+.masthead{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:22px 44px;background:var(--surface)}
+.brand{display:flex;align-items:center;gap:14px;min-width:0}
+.logo{height:40px;width:auto;max-width:180px;object-fit:contain}
+.logo-fallback{width:40px;height:40px;border-radius:10px;background:var(--gradient);color:var(--on-primary);display:flex;align-items:center;justify-content:center;font-weight:800}
+.company{font-weight:800;font-size:1.15rem;letter-spacing:-.01em}
+.tagline{display:none}
+.type{font-size:.72rem;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--primary-fg)}
+
+.hero{position:relative;padding:0}
+.hero-figure{position:relative;margin:0}
+.hero-img{width:100%;aspect-ratio:16/9;object-fit:cover;filter:saturate(1.05)}
+.hero-figure::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.05) 0%,rgba(0,0,0,.35) 45%,rgba(8,10,14,.92) 100%)}
+.hero-copy{position:absolute;left:0;right:0;bottom:0;padding:0 44px 44px;color:#fff;z-index:2}
+.hero.no-image .hero-copy{position:static;background:var(--gradient);color:var(--on-primary);padding:60px 44px 50px}
+.meta{display:flex;align-items:center;gap:12px;font-size:.76rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;opacity:.9;margin-bottom:16px}
+.dot{width:5px;height:5px;border-radius:50%;background:currentColor}
+.hero h1{font-size:clamp(2.2rem,6vw,4rem);font-weight:800;letter-spacing:-.035em;line-height:1.02;max-width:800px;margin-bottom:14px;text-shadow:0 2px 20px rgba(0,0,0,.25)}
+.subtitle{font-size:1.15rem;max-width:680px;opacity:.92}
+.credit{position:absolute;top:12px;right:16px;z-index:2;color:rgba(255,255,255,.75);margin:0}
+.credit a{color:rgba(255,255,255,.9)}
+
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:0;margin:0;background:var(--gradient);color:var(--on-primary)}
+.stat{padding:28px 24px;text-align:center;border-left:1px solid rgba(255,255,255,.25)}
+.stat:first-child{border-left:none}
+.stat-value{font-family:var(--font-heading);font-size:2.6rem;font-weight:800;letter-spacing:-.04em;line-height:1}
+.stat-label{font-size:.8rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;opacity:.9;margin-top:8px}
+
+.highlights{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;padding:44px 44px 10px}
+.highlight{background:var(--primary-soft);border:1px solid var(--border);border-radius:var(--radius);padding:26px;transition:transform .2s}
+.highlight:hover{transform:scale(1.015)}
+.highlight .icon{width:48px;height:48px;border-radius:14px;background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:1.5rem;margin-bottom:16px;box-shadow:var(--shadow)}
+.highlight h3{font-size:1.15rem;font-weight:800;margin-bottom:6px}
+.highlight p{color:var(--muted);font-size:.96rem}
+
+.summary{margin:34px 44px 10px;padding:0}
+.label{display:inline-block;font-size:.72rem;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:var(--on-primary);background:var(--primary);padding:6px 12px;border-radius:6px;margin-bottom:16px}
+.summary p{font-family:var(--font-heading);font-size:1.45rem;font-weight:600;line-height:1.45;letter-spacing:-.02em}
+
+.sections{padding:24px 44px 10px;counter-reset:sec}
+.section{padding:36px 0;border-top:2px solid var(--border);counter-increment:sec}
+.section:first-child{border-top:none}
+.section h2{display:flex;align-items:center;gap:14px;font-size:1.8rem;font-weight:800;letter-spacing:-.03em;margin-bottom:18px}
+.section h2::before{content:"0" counter(sec);flex-shrink:0;font-family:var(--font-heading);font-size:2.4rem;font-weight:800;color:var(--primary-fg);opacity:.55;line-height:1;letter-spacing:-.05em}
+.section-icon{font-size:1.2rem;line-height:1;flex-shrink:0}
+.section-title{min-width:0}
+.rich{font-size:1.04rem;color:var(--muted)}
+.rich strong{color:var(--text)}
+
+.quote{padding:10px 44px 30px}
+.quote blockquote{padding:34px;border-radius:var(--radius);background:var(--gradient);color:var(--on-primary)}
+.quote p{font-family:var(--font-heading);font-size:1.5rem;font-weight:700;line-height:1.35;letter-spacing:-.02em}
+.quote cite{display:block;margin-top:14px;font-style:normal;opacity:.9;font-weight:600}
+
+.cta{margin:10px 44px 44px;padding:40px;border-radius:var(--radius);background:var(--surface-2);border:1px solid var(--border);text-align:center}
+.cta-button{display:inline-block;padding:18px 40px;border-radius:14px;background:var(--text);color:var(--surface);font-weight:800;font-size:1.05rem;letter-spacing:-.01em}
+.cta-button:hover{text-decoration:none;background:var(--primary);color:var(--on-primary)}
+
+footer{padding:40px 44px;background:var(--surface-2);border-top:1px solid var(--border)}
+footer .company{font-size:1.4rem}
+footer .tagline{display:block;color:var(--muted);margin-top:4px}
+.footer-top{display:flex;justify-content:space-between;flex-wrap:wrap;gap:24px}
+.footer-contact{display:flex;flex-direction:column;gap:6px;text-align:right;color:var(--muted)}
+.social-links{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+.social-links a{padding:8px 14px;border-radius:10px;background:var(--surface);border:1px solid var(--border);font-weight:700;font-size:.88rem;color:var(--text)}
+.social-links a:hover{border-color:var(--primary);text-decoration:none}
+.footer-divider{border:none;border-top:1px solid var(--border);margin:26px 0 18px}
+.subscription{color:var(--muted);font-size:.88rem;margin-bottom:12px}
+.footer-bottom{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;color:var(--muted);font-size:.84rem}
+.legal{display:flex;gap:8px}
+.legal a{color:var(--muted)}
+
+@media(max-width:720px){
+  body{padding:0}
+  .wrapper{border-radius:0;border:none}
+  .masthead,.sections,.quote,footer{padding-left:20px;padding-right:20px}
+  .hero-copy{padding:0 20px 28px}
+  .hero.no-image .hero-copy{padding:44px 20px 36px}
+  .hero-img{aspect-ratio:4/5}
+  .hero h1{font-size:2.3rem}
+  .highlights{grid-template-columns:1fr;padding:28px 20px 6px}
+  .summary{margin:28px 20px 6px}
+  .cta{margin:10px 20px 28px;padding:28px 20px}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .stat{border-left:none;border-top:1px solid rgba(255,255,255,.25)}
+  .footer-top{flex-direction:column}
+  .footer-contact{text-align:left}
+}
+{% endblock %}
+
+{% block hero %}
+<section class="hero{% if not hero %} no-image{% endif %}">
+  {% if hero %}
+  <figure class="hero-figure">
+    <img class="hero-img" src="{{ hero.src }}" alt="{{ hero.alt }}">
+    {% if hero.credit and hero.credit.name %}
+    <figcaption class="credit">Photo: <a href="{{ hero.credit.url }}">{{ hero.credit.name }}</a> / <a href="{{ hero.credit.source_url }}">{{ hero.credit.source }}</a></figcaption>
+    {% endif %}
+  </figure>
+  {% endif %}
+  <div class="hero-copy">
+    <div class="meta">
+      {% if n.date %}<span>{{ n.date }}</span>{% endif %}
+      {% if n.date and n.estimated_read_time %}<span class="dot" aria-hidden="true"></span>{% endif %}
+      {% if n.estimated_read_time %}<span>{{ n.estimated_read_time }}</span>{% endif %}
+    </div>
+    <h1>{{ n.hero_title }}</h1>
+    {% if n.subtitle %}<p class="subtitle">{{ n.subtitle }}</p>{% endif %}
+  </div>
+</section>
+{% endblock %}
